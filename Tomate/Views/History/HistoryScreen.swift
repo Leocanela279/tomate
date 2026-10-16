@@ -121,7 +121,7 @@ private struct HistoryRow: View {
 
             Image(systemName: record.completed ? "checkmark.circle.fill" : "stop.circle")
                 .font(.system(size: 16))
-                .foregroundStyle(record.completed ? Theme.cream : Theme.tertiaryText)
+                .foregroundStyle(record.completed ? Theme.text : Theme.tertiaryText)
                 .help(record.completed ? "Completado" : "Terminado antes de tiempo")
                 .accessibilityLabel(record.completed ? "Completado" : "Terminado antes de tiempo")
         }

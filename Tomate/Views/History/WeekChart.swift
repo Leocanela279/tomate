@@ -5,6 +5,8 @@ import SwiftUI
 struct WeekChart: View {
     let records: [FocusRecord]
     @State private var hoveredDate: Date?
+    /// Charts get plain colors from the palette (bars take the accent: cream or tomato).
+    @Environment(\.palette) private var palette
 
     private struct DayTotal: Identifiable {
         let date: Date
@@ -29,14 +31,14 @@ struct WeekChart: View {
                 BarMark(x: .value("Día", day.date, unit: .day),
                         y: .value("Minutos", day.minutes),
                         width: .ratio(0.55))
-                    .foregroundStyle(Theme.cream.opacity(isToday || isHovered ? 1 : 0.55))
+                    .foregroundStyle(palette.accentFill.opacity(isToday || isHovered ? 1 : 0.55))
                     .cornerRadius(4)
                     .annotation(position: .top, spacing: 4) {
                         if isHovered || (isToday && hoveredDate == nil && day.minutes > 0) {
                             Text("\(day.minutes) min")
                                 .font(Theme.font(12, .semibold))
                                 .monospacedDigit()
-                                .foregroundStyle(Theme.cream)
+                                .foregroundStyle(palette.text)
                         }
                     }
             }
@@ -44,15 +46,15 @@ struct WeekChart: View {
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day)) { _ in
                     AxisValueLabel(format: .dateTime.weekday(.abbreviated), centered: true)
-                        .foregroundStyle(Theme.secondaryText)
+                        .foregroundStyle(palette.secondaryText)
                 }
             }
             .chartYAxis {
                 AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { _ in
                     AxisGridLine()
-                        .foregroundStyle(Theme.cream.opacity(0.12))
+                        .foregroundStyle(palette.text.opacity(0.12))
                     AxisValueLabel()
-                        .foregroundStyle(Theme.tertiaryText)
+                        .foregroundStyle(palette.tertiaryText)
                 }
             }
             .chartXSelection(value: $hoveredDate)

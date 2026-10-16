@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Buttons
 
-/// The one solid control on screen: a cream capsule with tomato text.
+/// The one solid control on screen: an accent capsule (cream on tomato, tomato on dark).
 struct PrimaryButtonStyle: ButtonStyle {
     var fullWidth = false
 
@@ -19,10 +19,10 @@ struct PrimaryButtonStyle: ButtonStyle {
             configuration.label
                 .labelStyle(.titleAndIcon)
                 .font(Theme.font(15, .semibold))
-                .foregroundStyle(Theme.tomatoDeep)
+                .foregroundStyle(Theme.onAccent)
                 .padding(.horizontal, 22)
                 .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: 44)
-                .background(Theme.cream, in: Capsule())
+                .background(Theme.accentFill, in: Capsule())
                 .contentShape(Capsule())
                 .opacity(isEnabled ? (configuration.isPressed ? 0.85 : 1) : 0.4)
                 .scaleEffect(configuration.isPressed ? 0.97 : 1)
@@ -37,7 +37,7 @@ struct GlassButtonStyle: ButtonStyle {
         configuration.label
             .labelStyle(.titleAndIcon)
             .font(Theme.font(14, .semibold))
-            .foregroundStyle(Theme.cream)
+            .foregroundStyle(Theme.text)
             .padding(.horizontal, 18)
             .frame(minHeight: 38)
             .glass(in: Capsule())
@@ -53,7 +53,7 @@ struct GlassIconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: size * 0.34, weight: .semibold))
-            .foregroundStyle(Theme.cream)
+            .foregroundStyle(Theme.text)
             .frame(width: size, height: size)
             .glass(in: Circle())
             .contentShape(Circle())
@@ -79,11 +79,12 @@ struct ChipButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(Theme.font(13, .medium))
-            .foregroundStyle(Theme.cream)
+            .foregroundStyle(Theme.text)
             .padding(.horizontal, 12)
             .frame(minHeight: 28)
-            .background(Theme.wine.opacity(configuration.isPressed ? 0.55 : 0.35), in: Capsule())
+            .background(Theme.field, in: Capsule())
             .contentShape(Capsule())
+            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
 
@@ -95,7 +96,7 @@ struct Choice<Value: Hashable>: Identifiable {
     var id: Value { value }
 }
 
-/// A row of mutually exclusive options; the selected one is a cream pill that slides.
+/// A row of mutually exclusive options; the selected one is an accent pill that slides.
 struct ChoiceControl<Value: Hashable>: View {
     @Binding var selection: Value
     let options: [Choice<Value>]
@@ -111,12 +112,12 @@ struct ChoiceControl<Value: Hashable>: View {
                     Text(option.label)
                         .font(Theme.font(13, .semibold))
                         .lineLimit(1)
-                        .foregroundStyle(isSelected ? Theme.tomatoDeep : Theme.secondaryText)
+                        .foregroundStyle(isSelected ? Theme.onAccent : Theme.secondaryText)
                         .frame(maxWidth: .infinity, minHeight: 30)
                         .background {
                             if isSelected {
                                 Capsule()
-                                    .fill(Theme.cream)
+                                    .fill(Theme.accentFill)
                                     .matchedGeometryEffect(id: "selection", in: namespace)
                             }
                         }
@@ -127,7 +128,7 @@ struct ChoiceControl<Value: Hashable>: View {
             }
         }
         .padding(3)
-        .background(Theme.wine.opacity(0.35), in: Capsule())
+        .background(Theme.field, in: Capsule())
         .animation(.snappy(duration: 0.25), value: selection)
     }
 }

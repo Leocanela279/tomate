@@ -180,7 +180,7 @@ private struct DueRow: View {
         .panel(cornerRadius: 20)
         .overlay {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Theme.cream.opacity(highlighted ? 0.8 : 0), lineWidth: 1.5)
+                .stroke(Theme.text.opacity(highlighted ? 0.8 : 0), lineWidth: 1.5)
         }
     }
 }

@@ -29,6 +29,7 @@ final class AppModel {
     let persistence: Persistence
     let notifier: Notifier
     let engine: TimerEngine
+    let focus: FocusAutomation
 
     var selectedTab: AppTab = .timer
     /// The scheduled pomodoro to point at when the user arrives from its notification.
@@ -45,14 +46,28 @@ final class AppModel {
     init() {
         let persistence = Persistence()
         let notifier = Notifier()
+        let engine = TimerEngine(persistence: persistence, notifier: notifier)
+        let focus = FocusAutomation()
         self.persistence = persistence
         self.notifier = notifier
-        self.engine = TimerEngine(persistence: persistence, notifier: notifier)
+        self.engine = engine
+        self.focus = focus
+
+        // The demo never touches the Mac's Focus.
+        guard !DemoData.isActive else { return }
+        // Focus follows the timer: on for study blocks, off for breaks, pauses and the end.
+        engine.onStudyingChange = { [weak focus] studying in
+            focus?.studyingChanged(studying)
+        }
+        // If the app was closed while Tomate had Focus on and the session is over, turn it off.
+        if !engine.isStudying { focus.releaseFocus() }
     }
 
     /// Runs once at launch.
     func bootstrap() async {
         await notifier.requestAuthorization()
+        // Sample pomodoros must not send real reminders.
+        guard !DemoData.isActive else { return }
         // Re-arm reminders in case they were created before notifications were allowed.
         let now = Date.now
         let upcoming = FetchDescriptor(predicate: #Predicate<ScheduledPomodoro> { $0.fireDate > now })

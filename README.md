@@ -10,6 +10,8 @@ Temporizador pomodoro para estudiar en macOS, hecho con SwiftUI. Pensado para se
 - **Sin solapes**: nunca hay dos pomodoros a la vez. No se puede programar uno que pise a otro (ni al que está en marcha); la app te propone el siguiente hueco libre. Si empiezas uno ahora que pisaría a uno programado, te pide confirmarlo y cancela el programado.
 - **Barra de menú**: el tomate se queda arriba con el tiempo que falta. Si cierras la ventana, la app sigue ahí; haz clic para ver el tiempo, pausar, saltar o terminar.
 - **Historial** con el tiempo estudiado hoy, los últimos 7 días (gráfica) y cada sesión.
+- **Concentración automática** (opcional, en Ajustes ⌘,): activa tu modo Concentración durante los bloques de estudio y lo quita en los descansos, al pausar y al terminar. Ver más abajo.
+- **Modo tomate y modo oscuro**: botón arriba a la derecha. El tema nuevo crece en círculo desde el botón mientras el resto de colores cambia con un fundido. La barra de menú sigue el mismo tema.
 - Pausar, reanudar (barra espaciadora), saltar al descanso y terminar.
 - El tiempo se guarda como fechas, así que sigue siendo exacto si el Mac se duerme o si cierras y vuelves a abrir la app.
 
@@ -30,13 +32,25 @@ El proyecto firma con "Sign to Run Locally", así que no necesitas cuenta de des
 
 > **Consejo:** en *Ajustes del Sistema → Notificaciones → Tomate*, pon el estilo en **Alertas**. Así el aviso de un pomodoro programado se queda en pantalla con los botones Empezar / Rechazar hasta que respondas.
 
-## Atajos
+## Concentración automática
+
+macOS no deja que una app active la Concentración por su cuenta, así que Tomate lo hace con dos atajos que creas una vez en la app Atajos:
+
+1. **Tomate Estudiar**: acción de Concentración en *Activar*, con tu modo (No molestar o uno de estudio).
+2. **Tomate Descansar**: la misma acción en *Desactivar*.
+3. En *Ajustes del Sistema → Concentración → tu modo → Apps permitidas*, añade **Tomate**, para que sus avisos de descanso y de fin te lleguen igualmente.
+4. En Tomate, abre Ajustes (⌘,), activa la opción y pulsa **Probar**. La primera vez macOS pide permiso para que Tomate use Atajos.
+
+Tomate ejecuta *Tomate Estudiar* al empezar cada bloque de estudio y *Tomate Descansar* al empezar el descanso, al pausar y al terminar. Solo desactiva la Concentración si fue Tomate quien la activó.
+
+## Atajos de teclado
 
 | Atajo | Acción |
 | --- | --- |
 | ↩ | Empezar el pomodoro configurado |
 | Espacio | Pausar / reanudar |
 | ⌘1 · ⌘2 · ⌘3 | Temporizador · Programados · Historial |
+| ⌘, | Ajustes (Concentración automática) |
 
 ## Cómo está hecho
 
@@ -58,8 +72,9 @@ Tomate/
 ├── Services/
 │   ├── TimerEngine.swift    Cuenta atrás, fases, pausa, historial
 │   ├── Notifier.swift       Avisos de fase y recordatorios programados
+│   ├── FocusAutomation.swift Concentración automática con Atajos
 │   └── Persistence.swift    Contenedor SwiftData y aviso si no se puede guardar
-├── Design/                  Paleta, botones, el dial-tomate
+├── Design/                  Paletas (tomate y oscuro), cambio de tema, botones, el dial-tomate
 ├── Views/                   Temporizador, Programados, Historial, barra de menú
 └── Support/Formatting.swift Formatos de hora y duración en español
 ```

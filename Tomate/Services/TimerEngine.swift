@@ -19,6 +19,11 @@ final class TimerEngine {
     @ObservationIgnored private var ticker: Task<Void, Never>?
     @ObservationIgnored private var activity: NSObjectProtocol?
 
+    /// Called when the user starts or stops actively studying: a study block running, not paused.
+    /// Breaks, pauses and the end of the session all count as "not studying".
+    @ObservationIgnored var onStudyingChange: ((Bool) -> Void)?
+    @ObservationIgnored private var wasStudying = false
+
     init(persistence: Persistence, notifier: Notifier) {
         self.persistence = persistence
         self.notifier = notifier
@@ -36,6 +41,19 @@ final class TimerEngine {
     var isActive: Bool { session != nil }
     var isPaused: Bool { session?.isPaused ?? false }
     var phase: Phase? { session?.currentPhase }
+
+    var isStudying: Bool {
+        guard let session else { return false }
+        return !session.isPaused && session.currentPhase.kind == .focus
+    }
+
+    /// Tells `onStudyingChange` if studying started or stopped since the last report.
+    func reportStudying() {
+        let studying = isStudying
+        guard studying != wasStudying else { return }
+        wasStudying = studying
+        onStudyingChange?(studying)
+    }
 
     /// Share of the current phase still to go, from 1 down to 0.
     var remainingFraction: Double {
@@ -132,6 +150,7 @@ final class TimerEngine {
         remaining = current.remaining(at: now)
         // Alerts for the coming phases were scheduled at start, so only the saved copy changes.
         ActiveSession.save(current)
+        reportStudying()
         if notifier.isDenied { NSSound(named: "Glass")?.play() }
     }
 
@@ -172,6 +191,7 @@ final class TimerEngine {
             stopTicking()
             keepAwake(false)
         }
+        reportStudying()
     }
 
     /// Saves the session to the history and clears it. Pending alerts are left alone here:
@@ -187,6 +207,7 @@ final class TimerEngine {
         ActiveSession.save(nil)
         stopTicking()
         keepAwake(false)
+        reportStudying()
     }
 
     /// Stops App Nap from throttling the countdown while a session runs.

@@ -36,6 +36,8 @@ struct MenuBarPanel: View {
     @Environment(TimerEngine.self) private var engine
     @Environment(\.openWindow) private var openWindow
     @Query(sort: \ScheduledPomodoro.fireDate) private var scheduled: [ScheduledPomodoro]
+    /// Follows the theme chosen in the main window.
+    @AppStorage(ThemeMode.storageKey) private var mode: ThemeMode = .tomato
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -46,7 +48,7 @@ struct MenuBarPanel: View {
             }
 
             Rectangle()
-                .fill(Theme.cream.opacity(0.14))
+                .fill(Theme.text.opacity(0.14))
                 .frame(height: 1)
 
             HStack {
@@ -61,8 +63,9 @@ struct MenuBarPanel: View {
         .padding(18)
         .frame(width: 300)
         .background(TomatoBackground())
-        .foregroundStyle(Theme.cream)
-        .tint(Theme.cream)
+        .foregroundStyle(Theme.text)
+        .tint(mode.palette.accentFill)
+        .environment(\.palette, mode.palette)
         .preferredColorScheme(.dark)
         .environment(\.locale, .app)
         .onAppear {
@@ -132,7 +135,7 @@ private struct ActiveSection: View {
                         .contentTransition(.numericText(countsDown: true))
                     Text(session.isPaused ? "En pausa" : kind.title)
                         .font(Theme.font(13, .semibold))
-                        .foregroundStyle(Theme.accent(for: kind))
+                        .foregroundStyle(Theme.phase(kind))
                     Text(session.plan.title)
                         .font(Theme.font(12))
                         .foregroundStyle(Theme.secondaryText)

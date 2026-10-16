@@ -59,7 +59,7 @@ private struct LiveDial: View {
                     .animation(reduceMotion ? nil : .snappy, value: time)
                 Text(caption)
                     .font(Theme.font(17, .semibold))
-                    .foregroundStyle(Theme.accent(for: kind))
+                    .foregroundStyle(Theme.phase(kind))
                 if let detail {
                     Text(detail)
                         .font(Theme.font(13))
@@ -244,7 +244,7 @@ private struct PhaseTimeline: View {
                         .monospacedDigit()
                         .foregroundStyle(Theme.secondaryText)
                 }
-                .foregroundStyle(step == .upcoming ? Theme.secondaryText : Theme.cream)
+                .foregroundStyle(step == .upcoming ? Theme.secondaryText : Theme.text)
                 .frame(height: 40)
                 .accessibilityElement(children: .combine)
             }
@@ -259,19 +259,19 @@ private struct PhaseTimeline: View {
 
     @ViewBuilder
     private func marker(kind: PhaseKind, step: Step) -> some View {
-        let color = Theme.accent(for: kind)
+        let color = Theme.phase(kind)
         ZStack {
             switch step {
             case .done:
                 Circle().fill(color.opacity(0.9))
                 Image(systemName: "checkmark")
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(Theme.tomatoDeep)
+                    .foregroundStyle(Theme.onAccent)
             case .current:
                 Circle().stroke(color.opacity(0.35), lineWidth: 4)
                 Circle().fill(color).padding(4)
             case .upcoming:
-                Circle().stroke(Theme.cream.opacity(0.4), lineWidth: 1.5)
+                Circle().stroke(Theme.text.opacity(0.4), lineWidth: 1.5)
             }
         }
         .frame(width: 18, height: 18)

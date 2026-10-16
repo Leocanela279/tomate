@@ -4,5 +4,13 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- Run the "Tomate Estudiar" / "Tomate Descansar" shortcuts through Shortcuts Events
+	     to turn Focus on and off. macOS asks the user for permission the first time. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<key>com.apple.security.temporary-exception.apple-events</key>
+	<array>
+		<string>com.apple.shortcuts.events</string>
+	</array>
 </dict>
 </plist>

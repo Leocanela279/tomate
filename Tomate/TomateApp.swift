@@ -27,5 +27,12 @@ struct TomateApp: App {
             MenuBarLabel(engine: model.engine)
         }
         .menuBarExtraStyle(.window)
+
+        // Tomate ▸ Ajustes… (⌘,)
+        Settings {
+            SettingsView()
+                .environment(model)
+        }
+        .windowResizability(.contentSize)
     }
 }

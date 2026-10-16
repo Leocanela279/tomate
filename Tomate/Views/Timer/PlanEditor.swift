@@ -11,7 +11,7 @@ struct PlanEditor: View {
                 .font(Theme.font(16, .medium))
                 .padding(.horizontal, 16)
                 .frame(height: 42)
-                .background(Theme.wine.opacity(0.35), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(Theme.field, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .firstTextBaseline) {
@@ -74,7 +74,7 @@ struct PlanEditor: View {
     }
 }
 
-/// The plan drawn to scale: study in cream, rest in green.
+/// The plan drawn to scale: study in the focus color, rest in green.
 struct PlanBar: View {
     let plan: SessionPlan
 
@@ -89,7 +89,7 @@ struct PlanBar: View {
                 ForEach(phases) { phase in
                     VStack(alignment: .leading, spacing: 6) {
                         Capsule()
-                            .fill(Theme.accent(for: phase.kind))
+                            .fill(Theme.phase(phase.kind))
                             .frame(height: 8)
                         Text(Formatting.minutes(fromSeconds: phase.seconds))
                             .font(Theme.font(12, .medium))

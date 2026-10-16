@@ -10,18 +10,19 @@ struct TomatoDial<Center: View>: View {
     @ViewBuilder var center: Center
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.palette) private var palette
 
     var body: some View {
         let ring = size * 0.05
-        let accent = Theme.accent(for: kind)
+        let accent = Theme.phase(kind)
 
         ZStack {
-            // Body of the fruit, slightly darker than the window, with a soft gloss.
+            // Body of the fruit, set apart from the window, with a soft gloss.
             Circle()
-                .fill(Theme.wine.opacity(0.22))
+                .fill(Theme.dialBody)
                 .overlay(alignment: .topLeading) {
                     Ellipse()
-                        .fill(Theme.cream.opacity(0.10))
+                        .fill(Theme.text.opacity(0.10))
                         .frame(width: size * 0.32, height: size * 0.15)
                         .rotationEffect(.degrees(-28))
                         .blur(radius: size * 0.02)
@@ -30,7 +31,7 @@ struct TomatoDial<Center: View>: View {
                 .padding(ring * 1.6)
 
             Circle()
-                .stroke(Theme.cream.opacity(0.12), lineWidth: ring)
+                .stroke(Theme.text.opacity(0.12), lineWidth: ring)
                 .padding(ring / 2)
 
             Circle()
@@ -44,16 +45,16 @@ struct TomatoDial<Center: View>: View {
             center
 
             Calyx()
-                .fill(Theme.leaf)
+                .fill(Palette.calyx)
                 .frame(width: size * 0.26, height: size * 0.13)
                 .overlay {
                     Capsule()
-                        .fill(Theme.leaf)
+                        .fill(Palette.calyx)
                         .frame(width: max(2, size * 0.022), height: size * 0.075)
                         .rotationEffect(.degrees(12), anchor: .bottom)
                         .offset(y: -size * 0.04)
                 }
-                .shadow(color: Theme.wine.opacity(0.45), radius: size * 0.012, y: size * 0.006)
+                .shadow(color: palette.shadow.opacity(0.45), radius: size * 0.012, y: size * 0.006)
                 .offset(y: -size / 2 + ring / 2)
         }
         .frame(width: size, height: size)

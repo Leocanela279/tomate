@@ -15,6 +15,14 @@ final class Persistence {
 
     init() {
         do {
+            if DemoData.isActive {
+                // Sample data in memory only: the real store is not opened.
+                let demo = try ModelContainer(for: FocusRecord.self, ScheduledPomodoro.self,
+                                              configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+                DemoData.seed(demo.mainContext)
+                container = demo
+                return
+            }
             container = try ModelContainer(for: FocusRecord.self, ScheduledPomodoro.self,
                                            configurations: ModelConfiguration("Tomate"))
         } catch {

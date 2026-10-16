@@ -7,6 +7,7 @@ struct ScheduleComposer: View {
     @Environment(AppModel.self) private var model
     @Environment(TimerEngine.self) private var engine
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.palette) private var palette
     @Query private var scheduled: [ScheduledPomodoro]
     @State private var plan: SessionPlan
     @State private var date: Date
@@ -83,8 +84,8 @@ struct ScheduleComposer: View {
         }
         .padding(28)
         .background(TomatoBackground())
-        .foregroundStyle(Theme.cream)
-        .tint(Theme.cream)
+        .foregroundStyle(Theme.text)
+        .tint(palette.accentFill)
         .preferredColorScheme(.dark)
         .environment(\.locale, .app)
         .onAppear {
@@ -149,7 +150,7 @@ struct ScheduleComposer: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .font(Theme.font(13, .medium))
-        .foregroundStyle(Theme.cream)
+        .foregroundStyle(Theme.text)
     }
 
     /// One hour from now, rounded up to the next five minutes (14:17 → 15:20).

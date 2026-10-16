@@ -7,18 +7,44 @@ struct MainView: View {
     @Environment(\.openWindow) private var openWindow
     @Query private var scheduled: [ScheduledPomodoro]
 
+    @AppStorage(ThemeMode.storageKey) private var mode: ThemeMode = .tomato
+    /// The theme being covered while the new one grows out of the button.
+    @State private var outgoingMode: ThemeMode?
+
+    /// Switching tabs: the old screen leaves at once and the new one fades in,
+    /// so the two never show on top of each other.
+    private static let screenChange = AnyTransition.asymmetric(
+        insertion: .opacity.animation(.easeOut(duration: 0.25)),
+        removal: .identity
+    )
+
     var body: some View {
         @Bindable var model = model
 
         VStack(spacing: 0) {
-            TabSwitcher(selection: $model.selectedTab, badges: [.scheduled: scheduled.count])
-                .padding(.top, 14)
+            // Tabs centred, theme button at the far right on the same line.
+            ZStack {
+                TabSwitcher(selection: $model.selectedTab, badges: [.scheduled: scheduled.count])
+                HStack(spacing: 8) {
+                    Spacer()
+                    SettingsLink {
+                        Image(systemName: "gearshape.fill")
+                    }
+                    .buttonStyle(GlassIconButtonStyle(size: 36))
+                    .help("Ajustes")
+                    .accessibilityLabel("Ajustes")
+                    ThemeToggle(mode: mode, action: toggleTheme)
+                        .disabled(outgoingMode != nil)
+                }
+                .padding(.trailing, 20)
+            }
+            .padding(.top, 14)
 
             Group {
                 switch model.selectedTab {
-                case .timer: TimerScreen()
-                case .scheduled: ScheduleScreen()
-                case .history: HistoryScreen()
+                case .timer: TimerScreen().transition(Self.screenChange)
+                case .scheduled: ScheduleScreen().transition(Self.screenChange)
+                case .history: HistoryScreen().transition(Self.screenChange)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -37,9 +63,20 @@ struct MainView: View {
             }
         }
         .frame(minWidth: 860, minHeight: 620)
-        .background(TomatoBackground())
-        .foregroundStyle(Theme.cream)
-        .tint(Theme.cream)
+        .backgroundPreferenceValue(ThemeToggleAnchorKey.self) { anchor in
+            GeometryReader { proxy in
+                // The button's centre, turned into window coordinates for the background.
+                let frame = proxy.frame(in: .global)
+                let local = anchor.map { proxy[$0] } ?? CGPoint(x: proxy.size.width - 38, y: 34)
+                ThemedBackground(mode: mode, outgoing: outgoingMode,
+                                 origin: CGPoint(x: frame.minX + local.x, y: frame.minY + local.y)) {
+                    outgoingMode = nil
+                }
+            }
+        }
+        .foregroundStyle(Theme.text)
+        .tint(mode.palette.accentFill)
+        .environment(\.palette, mode.palette)
         .preferredColorScheme(.dark)
         .environment(\.locale, .app)
         .onAppear {
@@ -52,19 +89,35 @@ struct MainView: View {
             NSApp.setActivationPolicy(.accessory)
         }
     }
+
+    /// The new background grows from the button (ThemedBackground) while text and
+    /// controls fade to the new palette.
+    private func toggleTheme() {
+        let current = mode
+        withAnimation(.easeInOut(duration: 0.5)) {
+            outgoingMode = current
+            mode = current.toggled
+        }
+    }
 }
 
+/// The three tabs on a glass bar. One glass pill slides under the selected tab:
+/// it is a single view that changes position and width, so it glides instead of jumping.
 private struct TabSwitcher: View {
     @Binding var selection: AppTab
     var badges: [AppTab: Int] = [:]
-    @Namespace private var namespace
+
+    /// A soft spring with a hint of bounce, like a drop of liquid settling.
+    private static let slide = Animation.spring(duration: 0.45, bounce: 0.18)
 
     var body: some View {
         HStack(spacing: 2) {
             ForEach(AppTab.allCases) { tab in
                 let isSelected = tab == selection
                 Button {
-                    selection = tab
+                    // The same transaction moves the pill, fades the label colours
+                    // and cross-fades the screen below.
+                    withAnimation(Self.slide) { selection = tab }
                 } label: {
                     HStack(spacing: 6) {
                         Text(tab.title)
@@ -74,31 +127,63 @@ private struct TabSwitcher: View {
                                 .monospacedDigit()
                                 .padding(.horizontal, 6)
                                 .frame(minHeight: 17)
-                                .background(isSelected ? Theme.tomato.opacity(0.18) : Theme.cream.opacity(0.18),
-                                            in: Capsule())
+                                .background(Theme.text.opacity(0.16), in: Capsule())
                         }
                     }
                     .font(Theme.font(13, .semibold))
-                    .foregroundStyle(isSelected ? Theme.tomatoDeep : Theme.cream.opacity(0.85))
+                    .foregroundStyle(isSelected ? Theme.text : Theme.secondaryText)
                     .padding(.horizontal, 16)
                     .frame(minHeight: 32)
-                    .background {
-                        if isSelected {
-                            Capsule()
-                                .fill(Theme.cream)
-                                .matchedGeometryEffect(id: "tab", in: namespace)
-                        }
-                    }
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .anchorPreference(key: TabBoundsKey.self, value: .bounds) { [tab: $0] }
                 .keyboardShortcut(tab.shortcut, modifiers: .command)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
+        .backgroundPreferenceValue(TabBoundsKey.self) { bounds in
+            GeometryReader { proxy in
+                if let anchor = bounds[selection] {
+                    let rect = proxy[anchor]
+                    GlassPill()
+                        .frame(width: rect.width, height: rect.height)
+                        .offset(x: rect.minX, y: rect.minY)
+                }
+            }
+        }
         .padding(4)
         .glass(in: Capsule())
-        .animation(.snappy(duration: 0.3), value: selection)
+    }
+}
+
+/// Where each tab is, so the pill can sit under the selected one.
+private struct TabBoundsKey: PreferenceKey {
+    static let defaultValue: [AppTab: Anchor<CGRect>] = [:]
+
+    static func reduce(value: inout [AppTab: Anchor<CGRect>], nextValue: () -> [AppTab: Anchor<CGRect>]) {
+        value.merge(nextValue()) { $1 }
+    }
+}
+
+/// A small bead of glass: a tinted translucent body, light catching the top edge,
+/// a bright rim and a soft shadow underneath.
+private struct GlassPill: View {
+    var body: some View {
+        Capsule()
+            .fill(Theme.accentFill.opacity(0.24))
+            .overlay {
+                Capsule()
+                    .fill(LinearGradient(colors: [.white.opacity(0.22), .white.opacity(0.02)],
+                                         startPoint: .top, endPoint: .bottom))
+            }
+            .overlay {
+                Capsule()
+                    .strokeBorder(LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.08)],
+                                                 startPoint: .top, endPoint: .bottom),
+                                  lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.22), radius: 8, y: 3)
     }
 }
 

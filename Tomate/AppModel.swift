@@ -70,12 +70,15 @@ final class AppModel {
     // MARK: Scheduling
 
     func schedule(_ plan: SessionPlan, at date: Date) {
-        let item = ScheduledPomodoro(plan: plan, fireDate: date)
+        // The picker only shows hours and minutes, so drop the hidden seconds:
+        // "21:08" has to fire at 21:08:00, not at 21:08:56.
+        let fireDate = Calendar.current.dateInterval(of: .minute, for: date)?.start ?? date
+        let item = ScheduledPomodoro(plan: plan, fireDate: fireDate)
         let id = item.id
         context.insert(item)
         // Only promise a notification for something that is really stored.
         guard persistence.save() else { return }
-        notifier.scheduleReminder(id: id, plan: plan, at: date)
+        notifier.scheduleReminder(id: id, plan: plan, at: fireDate)
     }
 
     /// Starts a scheduled pomodoro now. Any session in progress is stopped and saved first.

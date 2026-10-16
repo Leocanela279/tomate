@@ -32,7 +32,9 @@ struct ScheduleScreen: View {
                         .buttonStyle(PrimaryButtonStyle())
                 }
             } else {
-                TimelineView(.periodic(from: .now, by: 30)) { context in
+                // Fire dates are whole minutes, so refreshing on each minute boundary
+                // moves an item to "Esperando respuesta" exactly when it is due.
+                TimelineView(.everyMinute) { context in
                     list(now: context.date)
                 }
             }
@@ -70,6 +72,7 @@ struct ScheduleScreen: View {
                     section("Próximos") {
                         ForEach(upcoming) { item in
                             UpcomingRow(item: item,
+                                        now: now,
                                         onStartNow: { start(item) },
                                         onCancel: { model.remove(item) })
                         }
@@ -158,8 +161,18 @@ private struct DueRow: View {
 
 private struct UpcomingRow: View {
     let item: ScheduledPomodoro
+    /// From the screen's TimelineView, so "dentro de 3 minutos" counts down.
+    let now: Date
     let onStartNow: () -> Void
     let onCancel: () -> Void
+
+    private static let relative: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = .app
+        formatter.dateTimeStyle = .named
+        formatter.unitsStyle = .full
+        return formatter
+    }()
 
     var body: some View {
         HStack(spacing: 18) {
@@ -173,7 +186,8 @@ private struct UpcomingRow: View {
                     .foregroundStyle(Theme.secondaryText)
             }
             Spacer(minLength: 12)
-            Text(item.fireDate, format: .relative(presentation: .named))
+            // A plain String (not Text(date, format:)) so it redraws as `now` moves on.
+            Text(Self.relative.localizedString(for: item.fireDate, relativeTo: now))
                 .font(Theme.font(13))
                 .foregroundStyle(Theme.secondaryText)
             Button(action: onCancel) {

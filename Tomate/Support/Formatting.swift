@@ -34,6 +34,19 @@ enum Formatting {
     }
 }
 
+/// Wording for the "this would overlap" confirmations.
+enum OverlapText {
+    /// "Terminaría a las 22:35 y tienes «Física» programado a las 22:00."
+    static func startingNow(_ plan: SessionPlan, collides items: [ScheduledPomodoro]) -> String {
+        let end = Formatting.time(Date.now.addingTimeInterval(TimeInterval(plan.totalSeconds)))
+        let list = items
+            .map { "«\($0.plan.title)» programado a las \(Formatting.time($0.fireDate))" }
+            .joined(separator: " y ")
+        let what = items.count == 1 ? "se cancelará" : "se cancelarán"
+        return "Terminaría a las \(end) y tienes \(list). Si empiezas ahora, \(what) para que no se solapen."
+    }
+}
+
 enum DayLabel {
     /// "Hoy", "Mañana", "Ayer" or "vie 17".
     static func short(for date: Date) -> String {

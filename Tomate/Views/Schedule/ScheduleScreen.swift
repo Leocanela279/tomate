@@ -6,8 +6,16 @@ struct ScheduleScreen: View {
     @Environment(TimerEngine.self) private var engine
     @Query(sort: \ScheduledPomodoro.fireDate) private var items: [ScheduledPomodoro]
     @State private var showingComposer = false
-    /// Waiting for confirmation because another pomodoro is running.
-    @State private var replacing: ScheduledPomodoro?
+    /// Waiting for confirmation because starting it now would overlap something.
+    @State private var pendingStart: PendingStart?
+
+    /// A scheduled pomodoro the user wants to start now, and what that would overlap.
+    private struct PendingStart: Identifiable {
+        let item: ScheduledPomodoro
+        let stopsRunning: Bool
+        let collisions: [ScheduledPomodoro]
+        var id: UUID { item.id }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -44,12 +52,25 @@ struct ScheduleScreen: View {
         .sheet(isPresented: $showingComposer) {
             ScheduleComposer(initialPlan: model.draft)
         }
-        .confirmationDialog("Ya tienes un pomodoro en marcha", isPresented: isReplacing, presenting: replacing) { item in
-            Button("Terminar el actual y empezar este") { model.start(item) }
+        .confirmationDialog("¿Empezar ahora?", isPresented: isConfirmingStart, presenting: pendingStart) { pending in
+            Button("Empezar") {
+                model.start(pending.item, cancelling: pending.collisions)
+            }
             Button("Cancelar", role: .cancel) {}
-        } message: { _ in
-            Text("El actual se guardará en el historial con el tiempo que llevas.")
+        } message: { pending in
+            Text(startMessage(pending))
         }
+    }
+
+    private func startMessage(_ pending: PendingStart) -> String {
+        var parts: [String] = []
+        if pending.stopsRunning {
+            parts.append("El pomodoro en marcha se parará y se guardará en el historial con el tiempo que llevas.")
+        }
+        if !pending.collisions.isEmpty {
+            parts.append(OverlapText.startingNow(pending.item.plan, collides: pending.collisions))
+        }
+        return parts.joined(separator: "\n\n")
     }
 
     private func list(now: Date) -> some View {
@@ -92,16 +113,21 @@ struct ScheduleScreen: View {
         }
     }
 
+    /// Starts right away unless that would stop the running pomodoro or overlap a later one;
+    /// then the user confirms first.
     private func start(_ item: ScheduledPomodoro) {
-        if engine.isActive {
-            replacing = item
+        let collisions = Agenda.collisions(in: items, startingAt: .now,
+                                           duration: TimeInterval(item.plan.totalSeconds),
+                                           ignoring: item.id)
+        if engine.isActive || !collisions.isEmpty {
+            pendingStart = PendingStart(item: item, stopsRunning: engine.isActive, collisions: collisions)
         } else {
             model.start(item)
         }
     }
 
-    private var isReplacing: Binding<Bool> {
-        Binding(get: { replacing != nil }, set: { if !$0 { replacing = nil } })
+    private var isConfirmingStart: Binding<Bool> {
+        Binding(get: { pendingStart != nil }, set: { if !$0 { pendingStart = nil } })
     }
 }
 

@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 struct TimerScreen: View {
@@ -85,7 +86,10 @@ extension ActiveSession {
 
 private struct PlanPanel: View {
     @Environment(AppModel.self) private var model
+    @Query private var scheduled: [ScheduledPomodoro]
     @State private var showingScheduler = false
+    /// Scheduled pomodoros that starting now would overlap, waiting for the user's decision.
+    @State private var collisions: [ScheduledPomodoro] = []
 
     var body: some View {
         @Bindable var model = model
@@ -95,7 +99,13 @@ private struct PlanPanel: View {
 
             VStack(spacing: 6) {
                 Button {
-                    model.startDraft()
+                    let found = Agenda.collisions(in: scheduled, startingAt: .now,
+                                                  duration: TimeInterval(model.draft.totalSeconds))
+                    if found.isEmpty {
+                        model.startDraft()
+                    } else {
+                        collisions = found
+                    }
                 } label: {
                     Label("Empezar", systemImage: "play.fill")
                 }
@@ -116,6 +126,23 @@ private struct PlanPanel: View {
         .sheet(isPresented: $showingScheduler) {
             ScheduleComposer(initialPlan: model.draft)
         }
+        .confirmationDialog("Se solapa con un pomodoro programado", isPresented: hasCollisions) {
+            Button(startAnywayTitle) {
+                model.startDraft(cancelling: collisions)
+                collisions = []
+            }
+            Button("Cancelar", role: .cancel) { collisions = [] }
+        } message: {
+            Text(OverlapText.startingNow(model.draft, collides: collisions))
+        }
+    }
+
+    private var hasCollisions: Binding<Bool> {
+        Binding(get: { !collisions.isEmpty }, set: { if !$0 { collisions = [] } })
+    }
+
+    private var startAnywayTitle: String {
+        collisions.count == 1 ? "Empezar y cancelar el programado" : "Empezar y cancelar los programados"
     }
 }
 

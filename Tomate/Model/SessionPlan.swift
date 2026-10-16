@@ -54,6 +54,9 @@ struct SessionPlan: Codable, Hashable {
         ]
     }
 
+    /// How long the whole session lasts: study plus the break in the middle, if any.
+    var totalSeconds: Int { phases.reduce(0) { $0 + $1.seconds } }
+
     /// "50 min seguidos" or "90 min en dos bloques de 45 min con 15 min de descanso".
     var summary: String {
         guard isSplit else { return "\(focusMinutes) min seguidos" }

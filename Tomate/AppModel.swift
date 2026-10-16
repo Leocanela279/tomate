@@ -63,27 +63,50 @@ final class AppModel {
 
     // MARK: Timer
 
-    func startDraft() {
+    /// Starts the plan from the timer screen. `cancelling` are scheduled pomodoros
+    /// it would overlap; the user has agreed to drop them.
+    func startDraft(cancelling conflicts: [ScheduledPomodoro] = []) {
+        for conflict in conflicts { remove(conflict) }
         engine.start(draft)
     }
 
     // MARK: Scheduling
 
-    func schedule(_ plan: SessionPlan, at date: Date) {
+    private var allScheduled: [ScheduledPomodoro] {
+        (try? context.fetch(FetchDescriptor<ScheduledPomodoro>())) ?? []
+    }
+
+    /// Scheduled pomodoros that `plan` would run into if it started right now.
+    func collisions(startingNow plan: SessionPlan, ignoring id: UUID? = nil) -> [ScheduledPomodoro] {
+        Agenda.collisions(in: allScheduled, startingAt: .now,
+                          duration: TimeInterval(plan.totalSeconds), ignoring: id)
+    }
+
+    /// Schedules `plan` at `date` unless it would overlap another pomodoro.
+    /// The sheet already prevents that; this is the last line of defence.
+    @discardableResult
+    func schedule(_ plan: SessionPlan, at date: Date) -> Bool {
         // The picker only shows hours and minutes, so drop the hidden seconds:
         // "21:08" has to fire at 21:08:00, not at 21:08:56.
-        let fireDate = Calendar.current.dateInterval(of: .minute, for: date)?.start ?? date
+        let fireDate = Agenda.floorToMinute(date)
+        let interval = DateInterval(start: fireDate, duration: TimeInterval(plan.totalSeconds))
+        let agenda = Agenda(scheduled: allScheduled, running: engine.session)
+        guard fireDate > .now, agenda.conflict(with: interval) == nil else { return false }
+
         let item = ScheduledPomodoro(plan: plan, fireDate: fireDate)
         let id = item.id
         context.insert(item)
         // Only promise a notification for something that is really stored.
-        guard persistence.save() else { return }
+        guard persistence.save() else { return false }
         notifier.scheduleReminder(id: id, plan: plan, at: fireDate)
+        return true
     }
 
-    /// Starts a scheduled pomodoro now. Any session in progress is stopped and saved first.
-    func start(_ item: ScheduledPomodoro) {
+    /// Starts a scheduled pomodoro now. Any session in progress is stopped and saved first,
+    /// and `cancelling` (other scheduled pomodoros it would overlap) are dropped.
+    func start(_ item: ScheduledPomodoro, cancelling conflicts: [ScheduledPomodoro] = []) {
         let plan = item.plan
+        for conflict in conflicts { remove(conflict) }
         remove(item)
         engine.start(plan, fromSchedule: true)
         selectedTab = .timer
@@ -110,8 +133,8 @@ final class AppModel {
 
         switch action {
         case NotificationKey.acceptAction:
-            if engine.isActive {
-                // Something is already running: let the user choose in the app.
+            if engine.isActive || !collisions(startingNow: item.plan, ignoring: item.id).isEmpty {
+                // Starting it would overlap something: let the user choose in the app.
                 point(at: item)
             } else {
                 start(item)

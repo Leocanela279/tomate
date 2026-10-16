@@ -25,4 +25,9 @@ final class ScheduledPomodoro {
         SessionPlan(subject: subject, focusMinutes: focusMinutes,
                     splitEnabled: splitEnabled, breakMinutes: breakMinutes)
     }
+
+    /// From its start time to the end of its last block, break included.
+    var interval: DateInterval {
+        DateInterval(start: fireDate, duration: TimeInterval(plan.totalSeconds))
+    }
 }

@@ -71,7 +71,12 @@ struct MenuBarPanel: View {
     }
 
     private var idleSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        // The panel has no room for a confirmation: if starting now would overlap
+        // a scheduled pomodoro, the button opens Tomate, where the user decides.
+        let collisions = Agenda.collisions(in: scheduled, startingAt: .now,
+                                           duration: TimeInterval(model.draft.totalSeconds))
+
+        return VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 12) {
                 TomatoDial(fraction: 1, kind: .focus, size: 44)
                 VStack(alignment: .leading, spacing: 2) {
@@ -84,13 +89,22 @@ struct MenuBarPanel: View {
             }
 
             Button {
-                model.startDraft()
+                if collisions.isEmpty {
+                    model.startDraft()
+                } else {
+                    model.selectedTab = .timer
+                    model.presentMainWindow()
+                }
             } label: {
                 Label("Empezar \(model.draft.focusMinutes) min", systemImage: "play.fill")
             }
             .buttonStyle(PrimaryButtonStyle(fullWidth: true))
 
-            if let next = scheduled.first(where: { $0.fireDate > .now }) {
+            if let first = collisions.first {
+                Text("Se solaparía con «\(first.plan.title)» a las \(Formatting.time(first.fireDate)). Ábrelo en Tomate para decidir.")
+                    .font(Theme.font(12, .medium))
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if let next = scheduled.first(where: { $0.fireDate > .now }) {
                 Text("Siguiente: \(DayLabel.short(for: next.fireDate).lowercased()) a las \(Formatting.time(next.fireDate)), \(next.plan.title)")
                     .font(Theme.font(12))
                     .foregroundStyle(Theme.secondaryText)

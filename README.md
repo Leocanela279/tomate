@@ -7,6 +7,7 @@ Temporizador pomodoro para estudiar en macOS, hecho con SwiftUI. Pensado para se
 - **Pomodoros de 25 a 90 min**, en pasos de 5 (con atajos de 25, 45, 60 y 90).
 - **Dividir en dos bloques**: a partir de 60 min puedes meter un descanso de **15 o 20 min** a mitad, o hacerlo seguido.
 - **Programar pomodoros** para más tarde. A la hora elegida llega una notificación de macOS con **Empezar** y **Rechazar**.
+- **Sin solapes**: nunca hay dos pomodoros a la vez. No se puede programar uno que pise a otro (ni al que está en marcha); la app te propone el siguiente hueco libre. Si empiezas uno ahora que pisaría a uno programado, te pide confirmarlo y cancela el programado.
 - **Barra de menú**: el tomate se queda arriba con el tiempo que falta. Si cierras la ventana, la app sigue ahí; haz clic para ver el tiempo, pausar, saltar o terminar.
 - **Historial** con el tiempo estudiado hoy, los últimos 7 días (gráfica) y cada sesión.
 - Pausar, reanudar (barra espaciadora), saltar al descanso y terminar.
@@ -53,7 +54,7 @@ Tomate/
 ├── TomateApp.swift          Escenas: ventana principal y barra de menú
 ├── AppDelegate.swift        Ciclo de vida y respuestas a notificaciones
 ├── AppModel.swift           Une almacenamiento, temporizador y notificaciones
-├── Model/                   SessionPlan, ActiveSession y modelos SwiftData
+├── Model/                   SessionPlan, ActiveSession, Agenda (regla de no solapes) y modelos SwiftData
 ├── Services/
 │   ├── TimerEngine.swift    Cuenta atrás, fases, pausa, historial
 │   ├── Notifier.swift       Avisos de fase y recordatorios programados

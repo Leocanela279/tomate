@@ -1,0 +1,32 @@
+# Publishing a version: push a tag like v1.0.0. This builds Tomate on a Mac,
+# packs Tomate.dmg and attaches it to a GitHub Release with that name.
+# The website's download button always points at the newest one:
+# https://github.com/Leocanela279/tomate/releases/latest/download/Tomate.dmg
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode
+        run: xcodebuild -version
+
+      - name: Build Tomate.dmg
+        run: bash scripts/make-dmg.sh "${GITHUB_REF_NAME#v}"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/Tomate.dmg \
+            --title "Tomate ${GITHUB_REF_NAME#v}" \
+            --generate-notes

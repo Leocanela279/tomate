@@ -8,7 +8,7 @@ import SwiftData
 /// Reminders and Focus automation stay off in this mode.
 enum DemoData {
     #if DEBUG
-    static let isActive = true // TEMP: recording
+    static let isActive = ProcessInfo.processInfo.arguments.contains("-TomateDemo")
     #else
     static let isActive = false
     #endif

@@ -15,3 +15,6 @@ build/
 # Swift Package Manager
 .swiftpm/
 .build/
+
+# Restos de las capturas para la web
+.demo-work/

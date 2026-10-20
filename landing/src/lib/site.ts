@@ -34,5 +34,5 @@ export const SCREENS = [
   },
 ] as const;
 
-/** Paths inside /public, prefixed with the base path (GitHub Pages serves the site under /tomate). */
+/** Paths inside /public, prefixed with the base path (empty on usetomate.com). */
 export const asset = (path: string) => `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${path}`;

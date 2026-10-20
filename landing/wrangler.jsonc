@@ -1,0 +1,10 @@
+// Cloudflare Workers (static assets): serves the Astro build in dist/.
+// In Cloudflare: Settings ▸ Build ▸ Root directory = landing, Build command = npm run build,
+// Deploy command = npx wrangler deploy.
+{
+  "name": "usetomate",
+  "compatibility_date": "2026-10-20",
+  "assets": {
+    "directory": "./dist"
+  }
+}

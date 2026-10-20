@@ -66,7 +66,15 @@ npm install
 npm run dev        # http://localhost:4321
 ```
 
-Se publica sola en GitHub Pages con `.github/workflows/landing.yml` cada vez que cambia `landing/` en `main`. La primera vez hay que activar *Settings → Pages → Source: GitHub Actions*.
+Se publica en Cloudflare (Workers, archivos estáticos) en [usetomate.com](https://usetomate.com) cada vez que se sube `main`. En el proyecto de Cloudflare, *Settings → Build*:
+
+| Campo | Valor |
+| --- | --- |
+| Root directory | `landing` |
+| Build command | `npm run build` |
+| Deploy command | `npx wrangler deploy` |
+
+`landing/wrangler.jsonc` le dice a Cloudflare que sirva la carpeta `dist/` que genera Astro.
 
 ### Capturas con datos de ejemplo
 
@@ -108,7 +116,7 @@ Tomate/
 └── Support/                 Formatos en español y datos de ejemplo (-TomateDemo)
 landing/                     Web en Astro + Tailwind CSS
 scripts/make-dmg.sh          Compila en Release y crea build/Tomate.dmg
-.github/workflows/           Release con el DMG y publicación de la web
+.github/workflows/           Release con el DMG
 ```
 
 Algunas decisiones:

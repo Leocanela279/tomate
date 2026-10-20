@@ -1,0 +1,114 @@
+---
+import Icon from './Icon.astro';
+import { DMG_URL, RELEASES_URL, REPO_URL } from '../lib/site';
+
+const command = 'xattr -dr com.apple.quarantine /Applications/Tomate.app';
+
+const steps = [
+  { title: 'Descarga y abre Tomate.dmg', text: 'Se abre una ventana con Tomate y la carpeta Aplicaciones.' },
+  { title: 'Arrastra Tomate a Aplicaciones', text: 'Después puedes expulsar el disco y borrar el .dmg.' },
+  { title: 'Ábrelo una vez', text: 'macOS dirá que no puede comprobar que Tomate esté libre de software malicioso. Pulsa «Hecho».' },
+  { title: 'Ve a Ajustes del Sistema → Privacidad y seguridad', text: 'Baja hasta la sección Seguridad. Verás un aviso sobre Tomate con el botón «Abrir igualmente».' },
+  { title: 'Pulsa «Abrir igualmente»', text: 'Confirma con tu contraseña o Touch ID y vuelve a pulsar «Abrir igualmente». Solo hace falta la primera vez.' },
+];
+---
+
+<section id="instalar" class="px-4 pt-28 pb-24 sm:px-6 sm:pt-36">
+  <div class="mx-auto max-w-6xl">
+    <div class="reveal-up mx-auto max-w-2xl text-center">
+      <h2 class="text-[clamp(2rem,4.6vw,3.2rem)] leading-[1.05] font-bold tracking-[-0.03em] text-balance">
+        Instálalo en un minuto
+      </h2>
+      <p class="mt-4 text-lg text-ink-2 text-pretty">
+        Tomate es gratuito y su código está en GitHub. Como no está firmado con un certificado de desarrollador de Apple,
+        la primera vez macOS te pedirá permiso para abrirlo.
+      </p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href={DMG_URL} class="btn-primary !min-h-12 !px-7 !text-base">
+          <Icon name="download" size={19} />
+          Descargar Tomate.dmg
+        </a>
+        <a href={RELEASES_URL} class="btn-glass glass !min-h-12">Todas las versiones</a>
+      </div>
+      <p class="mt-4 text-[13px] text-ink-3">macOS 14 Sonoma o posterior · Apple Silicon e Intel</p>
+    </div>
+
+    <div class="mt-14 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <!-- Same numbered steps as the app's Settings screen. -->
+      <ol class="panel reveal-up p-6 sm:p-8">
+        <li class="mb-6 flex items-center gap-3">
+          <span class="grid size-10 place-items-center rounded-full bg-field"><Icon name="shield" size={20} /></span>
+          <h3 class="text-xl font-bold">La primera vez</h3>
+        </li>
+        {
+          steps.map((step, index) => (
+            <li class="step">
+              <span class="step-number">{index + 1}</span>
+              <div>
+                <p class="font-semibold">{step.title}</p>
+                <p class="mt-1 text-[15px] leading-relaxed text-ink-2">{step.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="grid grid-cols-1 content-start gap-4">
+        <div class="panel reveal-up p-6 sm:p-8">
+          <div class="flex items-center gap-3">
+            <span class="grid size-10 place-items-center rounded-full bg-field"><Icon name="terminal" size={20} /></span>
+            <h3 class="text-xl font-bold">¿Dice que está dañado?</h3>
+          </div>
+          <p class="mt-3 text-[15px] leading-relaxed text-ink-2">
+            Algunas versiones de macOS lo muestran así con las apps descargadas que no son de la App Store. Abre Terminal, pega esto y vuelve a abrir Tomate:
+          </p>
+          <div class="mt-4 flex items-center gap-2 rounded-2xl bg-field p-2 pl-4">
+            <code class="min-w-0 flex-1 overflow-x-auto py-1.5 font-mono text-[13px] whitespace-nowrap">{command}</code>
+            <button type="button" class="btn-glass glass shrink-0 !min-h-9 !px-3.5 !text-[13px]" data-copy={command}>
+              <Icon name="copy" size={15} />
+              <span data-copy-label>Copiar</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="panel reveal-up p-6 sm:p-8">
+          <div class="flex items-center gap-3">
+            <span class="grid size-10 place-items-center rounded-full bg-field"><Icon name="bell" size={20} /></span>
+            <h3 class="text-xl font-bold">Al abrirlo</h3>
+          </div>
+          <ul class="mt-3 space-y-2.5 text-[15px] leading-relaxed text-ink-2">
+            <li><strong class="text-ink">Acepta las notificaciones.</strong> Sin ellas no te puede avisar de los pomodoros programados.</li>
+            <li><strong class="text-ink">Concentración, opcional.</strong> En Ajustes (⌘,) te explica cómo activarla al estudiar.</li>
+            <li>
+              <strong class="text-ink">¿Desconfías?</strong> Revisa el <a class="underline decoration-ink-3 underline-offset-3 hover:decoration-ink" href={REPO_URL}>código en GitHub</a> o compílalo tú con Xcode.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .step {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .step-number {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    margin-top: 1px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 13px;
+    font-weight: 750;
+    font-variant-numeric: tabular-nums;
+  }
+</style>

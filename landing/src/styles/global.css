@@ -1,0 +1,275 @@
+@import "tailwindcss";
+@import "@fontsource-variable/nunito";
+
+/* The two looks of Tomate, with the same roles and values as the app (Design/Theme.swift). */
+:root {
+  --cream: #fff1ec;
+  --leaf: #63c46e;
+  --wine: 74 6 10;
+
+  --bg-top: #bf2620;
+  --bg-bottom: #6e0a0f;
+  --glow: rgb(255 111 82 / 0.3);
+  --text: var(--cream);
+  --text-2: rgb(255 241 236 / 0.78);
+  --text-3: rgb(255 241 236 / 0.58);
+  --surface: rgb(var(--wine) / 0.3);
+  --field: rgb(var(--wine) / 0.35);
+  --accent: var(--cream);
+  --on-accent: #6e0a0f;
+  --focus: var(--cream);
+  --rest: var(--leaf);
+  --dial-body: rgb(var(--wine) / 0.22);
+  --shadow: rgb(var(--wine));
+  --glass: rgb(255 255 255 / 0.1);
+  --glass-edge: rgb(255 255 255 / 0.22);
+
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] {
+  --bg-top: #211213;
+  --bg-bottom: #0f090a;
+  --glow: rgb(229 57 46 / 0.16);
+  --text-2: rgb(255 241 236 / 0.7);
+  --text-3: rgb(255 241 236 / 0.5);
+  --surface: rgb(255 255 255 / 0.05);
+  --field: rgb(255 255 255 / 0.07);
+  --accent: #e5392e;
+  --on-accent: var(--cream);
+  --focus: #e5392e;
+  --dial-body: rgb(229 57 46 / 0.1);
+  --shadow: #000;
+  --glass: rgb(255 255 255 / 0.06);
+  --glass-edge: rgb(255 255 255 / 0.14);
+}
+
+@theme inline {
+  --font-sans: ui-rounded, "SF Pro Rounded", "Nunito Variable", system-ui, sans-serif;
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-2);
+  --color-ink-3: var(--text-3);
+  --color-surface: var(--surface);
+  --color-field: var(--field);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-focus: var(--focus);
+  --color-rest: var(--rest);
+  --color-leaf: var(--leaf);
+}
+
+html {
+  background: var(--bg-bottom);
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+}
+
+body {
+  min-height: 100dvh;
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+/* The window background of the app, pinned behind the page. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle 520px at 25% 22%, var(--glow), transparent),
+    linear-gradient(var(--bg-top), var(--bg-bottom));
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* ---------- Surfaces ---------- */
+
+@utility panel {
+  background: var(--surface);
+  border-radius: 24px;
+}
+
+/* Liquid Glass, approximated: frosted, tinted by what is behind, light on the top edge. */
+@utility glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    inset 0 0 0 1px var(--glass-edge),
+    0 6px 20px rgb(0 0 0 / 0.12);
+}
+
+/* ---------- Buttons, as in Design/Controls.swift ---------- */
+
+@utility btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 650;
+  font-size: 15px;
+  transition: transform 0.12s ease-out, opacity 0.12s ease-out, background-color 0.5s, color 0.5s;
+  &:hover { opacity: 0.92; }
+  &:active { transform: scale(0.97); opacity: 0.85; }
+}
+
+@utility btn-glass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 650;
+  font-size: 14px;
+  transition: opacity 0.12s;
+  &:active { opacity: 0.75; }
+}
+
+@utility btn-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--text);
+  transition: opacity 0.12s, transform 0.12s;
+  &:active { opacity: 0.75; transform: scale(0.94); }
+}
+
+/* Focus ring in the theme colour. */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* ---------- Theme change: the new look grows out of the button ---------- */
+
+@property --reveal {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Soft edge, like the app: opaque for 80% of the radius, then fading out. */
+::view-transition-new(root) {
+  -webkit-mask-image: radial-gradient(circle var(--reveal) at var(--reveal-x, 100%) var(--reveal-y, 0%), #000 80%, transparent 100%);
+  mask-image: radial-gradient(circle var(--reveal) at var(--reveal-x, 100%) var(--reveal-y, 0%), #000 80%, transparent 100%);
+}
+
+/* ---------- Motion ---------- */
+
+/* SwiftUI .spring(duration: 0.45, bounce: 0.18), sampled. */
+:root {
+  --spring: linear(0, 0.0566, 0.1898, 0.3546, 0.5205, 0.6687, 0.7896, 0.8799, 0.9406, 0.9761, 0.9932, 0.9991, 1.0002, 0.9994, 0.9987, 0.9987, 0.9991, 0.9996, 1);
+}
+
+/* Only hidden when the script is there to show it again. */
+.js .reveal-up {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease-out, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.js .reveal-up.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Tab bars: header navigation and the screens switcher ---------- */
+
+.tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  color: var(--text-2);
+  transition: color 0.35s;
+  &:hover { color: var(--text); }
+  &[aria-current="true"], &[aria-selected="true"] { color: var(--text); }
+}
+
+/* GlassPill in MainView.swift: tinted body, light on the top edge, bright rim, soft shadow. */
+.tab-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  opacity: 0;
+  border-radius: 999px;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.02)),
+    color-mix(in srgb, var(--accent) 24%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.5),
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 3px 8px rgb(0 0 0 / 0.22);
+  transition:
+    transform 0.6s var(--spring),
+    width 0.6s var(--spring),
+    opacity 0.2s;
+}
+
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgb(255 241 236 / 0.16);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A new screen fades in; the old one is already gone (MainView.screenChange). */
+.screen-in {
+  animation: screen-in 0.25s ease-out;
+}
+
+@keyframes screen-in {
+  from { opacity: 0; }
+}
+
+/* Screenshots exist in both looks; show the one that matches the page. */
+:root[data-theme="dark"] .only-tomato,
+:root:not([data-theme="dark"]) .only-dark {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .js .reveal-up { opacity: 1; transform: none; transition: none; }
+  .tab-pill { transition: opacity 0.2s; }
+  .screen-in { animation: none; }
+}

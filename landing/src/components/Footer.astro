@@ -1,0 +1,25 @@
+---
+import { AUTHOR, AUTHOR_URL, REPO_URL, RELEASES_URL, asset } from '../lib/site';
+---
+
+<footer class="px-4 pb-10 sm:px-6">
+  <div class="mx-auto flex max-w-6xl flex-col items-center gap-5 border-t border-white/10 pt-8 text-center sm:flex-row sm:justify-between sm:text-left">
+    <div class="flex items-center gap-3">
+      <img src={asset('icon.png')} alt="" width="40" height="40" class="size-10" loading="lazy" />
+      <div>
+        <p class="font-bold">Tomate</p>
+        <p class="text-sm text-ink-2">
+          Desarrollado por <a href={AUTHOR_URL} class="font-semibold text-ink underline decoration-ink-3 underline-offset-3 hover:decoration-ink">{AUTHOR}</a>
+        </p>
+      </div>
+    </div>
+    <nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-ink-2" aria-label="Enlaces">
+      <a href={REPO_URL} class="hover:text-ink">Código en GitHub</a>
+      <a href={RELEASES_URL} class="hover:text-ink">Versiones</a>
+      <a href="#instalar" class="hover:text-ink">Instalar</a>
+    </nav>
+  </div>
+  <p class="mx-auto mt-6 max-w-6xl text-center text-xs text-ink-3 sm:text-left">
+    © {new Date().getFullYear()} {AUTHOR}. Sin cuentas, sin anuncios y sin rastreo.
+  </p>
+</footer>

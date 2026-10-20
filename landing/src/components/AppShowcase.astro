@@ -1,0 +1,115 @@
+---
+import { SCREENS, SHOT, asset } from '../lib/site';
+
+/**
+ * The app's own tab bar with real screenshots. It plays by itself like a GIF:
+ * the pill slides to the next tab and the screen fades in, as in the app.
+ * Any click or key on it hands control to the visitor.
+ */
+---
+
+<div class="showcase">
+  <div class="flex justify-center">
+    <div role="tablist" aria-label="Pantallas de Tomate" data-tabbar data-autoplay class="glass relative flex rounded-full p-1">
+      <span data-pill class="tab-pill" aria-hidden="true"></span>
+      {
+        SCREENS.map((screen, index) => (
+          <button
+            type="button"
+            role="tab"
+            id={`tab-${screen.id}`}
+            aria-controls={`panel-${screen.id}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+            tabindex={index === 0 ? 0 : -1}
+            class="tab max-[380px]:px-3"
+          >
+            {screen.tab}
+            {screen.badge && <span class="badge">{screen.badge}</span>}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="shots">
+    {
+      SCREENS.map((screen, index) => (
+        <figure role="tabpanel" id={`panel-${screen.id}`} aria-labelledby={`tab-${screen.id}`} hidden={index !== 0} class="shot">
+          {(['tomato', 'dark'] as const).map((look) => (
+            <img
+              class={`only-${look}`}
+              src={asset(`media/${screen.id}-${look}.webp`)}
+              alt={`${screen.tab} de Tomate en modo ${look === 'tomato' ? 'tomate' : 'oscuro'}: ${screen.alt}`}
+              width={SHOT.width}
+              height={SHOT.height}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              fetchpriority={index === 0 && look === 'tomato' ? 'high' : undefined}
+              decoding="async"
+            />
+          ))}
+          <figcaption class="mx-auto mt-2 max-w-xl px-2 text-center text-[15px] leading-relaxed text-ink-2 text-pretty">
+            <strong class="text-ink">{screen.title}.</strong> {screen.text}
+          </figcaption>
+        </figure>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .shots {
+    position: relative;
+    margin-top: clamp(16px, 3vw, 28px);
+  }
+
+  /* A warm light behind the window, the colour of the fruit. */
+  .shots::before {
+    content: "";
+    position: absolute;
+    inset: 10% 8% 22%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(255 120 90 / 0.5), transparent);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+
+  :global([data-theme="dark"]) .shots::before {
+    background: radial-gradient(closest-side, rgb(229 57 46 / 0.4), transparent);
+  }
+
+  .shot {
+    position: relative;
+    margin: 0;
+  }
+
+  /* The captures have the window's rounded corners; the shadow follows them. */
+  .shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter:
+      drop-shadow(0 0 0.5px rgb(255 255 255 / 0.35))
+      drop-shadow(0 30px 40px rgb(0 0 0 / 0.38))
+      drop-shadow(0 8px 14px rgb(0 0 0 / 0.22));
+  }
+
+  /* The window tilts back and settles flat as it scrolls into view. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .shots {
+        perspective: 1600px;
+      }
+
+      .shot img {
+        animation: settle linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 35%;
+      }
+
+      @keyframes settle {
+        from { transform: rotateX(14deg) scale(0.95) translateY(20px); }
+        to { transform: none; }
+      }
+    }
+  }
+</style>

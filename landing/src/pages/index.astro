@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import Features from '../components/Features.astro';
+import Install from '../components/Install.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base
+  title="Tomate · Pomodoros de hasta 90 minutos para estudiar en tu Mac"
+  description="Temporizador pomodoro gratuito para macOS: sesiones de 25 a 90 minutos, descanso a mitad, pomodoros programados con aviso, barra de menú e historial. Sin cuentas."
+>
+  <Header />
+  <main>
+    <Hero />
+    <section id="funciones" class="px-4 sm:px-6">
+      <Features />
+    </section>
+    <Install />
+  </main>
+  <Footer />
+</Base>

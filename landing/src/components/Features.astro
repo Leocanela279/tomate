@@ -1,0 +1,55 @@
+---
+import Icon from './Icon.astro';
+
+const features = [
+  { icon: 'clock', title: 'De 25 a 90 minutos', text: 'No solo los 25 de siempre. Atajos para 25, 45, 60 y 90, y un control para cualquier punto intermedio.' },
+  { icon: 'split', title: 'Dos bloques con descanso', text: 'A partir de 60 minutos, parte la sesión en dos con 15 o 20 minutos de descanso. O hazla seguida.' },
+  { icon: 'bell', title: 'Programa para más tarde', text: 'Elige día y hora. Te llega una notificación de macOS con Empezar y Rechazar.' },
+  { icon: 'calendar', title: 'Nunca se solapan', text: 'No deja programar dos pomodoros a la vez, ni encima del que está en marcha. Te propone el siguiente hueco.' },
+  { icon: 'menubar', title: 'En la barra de menú', text: 'Cierra la ventana y el tomate sigue arriba con el tiempo que falta. Pausa, salta o termina desde ahí.' },
+  { icon: 'chart', title: 'Historial y gráfica', text: 'Lo que llevas hoy, los últimos 7 días y cada sesión. Las de menos de un minuto no ensucian la lista.' },
+  { icon: 'moon', title: 'Concentración automática', text: 'Activa tu modo Concentración al estudiar y lo quita en los descansos, para que te lleguen los avisos.' },
+  { icon: 'contrast', title: 'Modo tomate y oscuro', text: 'El tema nuevo crece en círculo desde el botón, igual que en esta web. Pruébalo arriba a la derecha.' },
+  { icon: 'lock', title: 'Todo se queda en tu Mac', text: 'Sin cuentas, sin servidor y sin base de datos externa. Funciona aunque no tengas internet.' },
+] as const;
+---
+
+<div class="mx-auto mt-24 max-w-6xl sm:mt-32">
+  <div class="reveal-up mx-auto max-w-2xl text-center">
+    <h2 class="text-[clamp(2rem,4.6vw,3.2rem)] leading-[1.05] font-bold tracking-[-0.03em] text-balance">
+      Hecho para estudiar, no para distraer
+    </h2>
+    <p class="mt-4 text-lg text-ink-2 text-pretty">Lo justo para sentarte y ponerte a ello. Lo demás, fuera.</p>
+  </div>
+
+  <ul class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      features.map((feature, index) => (
+        <li class="feature panel reveal-up p-6" style={`transition-delay: ${(index % 3) * 70}ms`}>
+          <span class="grid size-11 place-items-center rounded-full bg-field">
+            <Icon name={feature.icon} size={21} />
+          </span>
+          <h3 class="mt-4 text-[17px] font-bold">{feature.title}</h3>
+          <p class="mt-1.5 text-[15px] leading-relaxed text-ink-2">{feature.text}</p>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  .feature {
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
+      background-color 0.35s,
+      opacity 0.7s ease-out;
+  }
+
+  @media (hover: hover) {
+    .feature:hover {
+      transform: translateY(-3px);
+      background: color-mix(in srgb, var(--surface) 100%, rgb(255 255 255 / 0.04));
+    }
+  }
+</style>

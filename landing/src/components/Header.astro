@@ -1,0 +1,39 @@
+---
+import Icon from './Icon.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import { REPO_URL, asset } from '../lib/site';
+
+const links = [
+  { href: '#inicio', label: 'Inicio' },
+  { href: '#funciones', label: 'Funciones' },
+  { href: '#instalar', label: 'Instalar' },
+];
+---
+
+<header class="pointer-events-none fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-6 sm:pt-4">
+  <div class="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3">
+    <a href="#inicio" class="pointer-events-auto flex items-center gap-2.5 justify-self-start" aria-label="Tomate, ir al inicio">
+      <img src={asset('icon.png')} alt="" width="36" height="36" class="size-9 drop-shadow-[0_4px_10px_rgb(0_0_0/0.25)]" />
+      <span class="hidden text-[17px] font-bold tracking-tight md:inline">Tomate</span>
+    </a>
+
+    <!-- The app's tab bar, used as navigation. The pill follows the section on screen. -->
+    <nav data-nav data-tabbar class="glass pointer-events-auto relative flex rounded-full p-1" aria-label="Secciones">
+      <span data-pill class="tab-pill" aria-hidden="true"></span>
+      {
+        links.map((link, index) => (
+          <a href={link.href} class="tab max-[380px]:px-3" aria-current={index === 0 ? 'true' : undefined}>
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="pointer-events-auto flex items-center gap-2 justify-self-end">
+      <a href={REPO_URL} class="btn-icon glass max-sm:hidden" aria-label="Código en GitHub" title="Código en GitHub">
+        <Icon name="github" size={17} />
+      </a>
+      <ThemeToggle />
+    </div>
+  </div>
+</header>

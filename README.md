@@ -43,6 +43,35 @@ macOS no deja que una app active la Concentración por su cuenta, así que Tomat
 
 Tomate ejecuta *Tomate Estudiar* al empezar cada bloque de estudio y *Tomate Descansar* al empezar el descanso, al pausar y al terminar. Solo desactiva la Concentración si fue Tomate quien la activó.
 
+## Publicar una versión
+
+El botón de descarga de la web apunta siempre a `releases/latest/download/Tomate.dmg`, así que publicar es crear una etiqueta:
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+GitHub Actions (`.github/workflows/release.yml`) compila Tomate en un Mac, crea `Tomate.dmg` con `scripts/make-dmg.sh` y lo adjunta a una Release con ese nombre. El mismo script funciona en local: `bash scripts/make-dmg.sh 1.0.0` deja el disco en `build/Tomate.dmg`.
+
+El DMG va firmado "para ejecutar en local", sin certificado de desarrollador de Apple. Por eso, la primera vez macOS pide confirmación; la web explica los pasos. Para quitar ese aviso haría falta firmar con Developer ID y notarizar (Apple Developer Program).
+
+## Web
+
+La landing está en `landing/` (Astro + Tailwind CSS). Usa los mismos colores, el mismo botón de tema con el círculo que crece y la misma barra de pestañas que la app.
+
+```sh
+cd landing
+npm install
+npm run dev        # http://localhost:4321
+```
+
+Se publica sola en GitHub Pages con `.github/workflows/landing.yml` cada vez que cambia `landing/` en `main`. La primera vez hay que activar *Settings → Pages → Source: GitHub Actions*.
+
+### Capturas con datos de ejemplo
+
+Para hacer capturas sin enseñar tu historial, abre *Product → Scheme → Edit Scheme… → Run → Arguments* y activa `-TomateDemo`. Tomate arranca con un historial y unos programados de ejemplo en memoria; tus datos no se tocan, y en ese modo no programa recordatorios ni cambia la Concentración. Desactívalo al terminar.
+
 ## Atajos de teclado
 
 | Atajo | Acción |
@@ -75,8 +104,11 @@ Tomate/
 │   ├── FocusAutomation.swift Concentración automática con Atajos
 │   └── Persistence.swift    Contenedor SwiftData y aviso si no se puede guardar
 ├── Design/                  Paletas (tomate y oscuro), cambio de tema, botones, el dial-tomate
-├── Views/                   Temporizador, Programados, Historial, barra de menú
-└── Support/Formatting.swift Formatos de hora y duración en español
+├── Views/                   Temporizador, Programados, Historial, barra de menú, Ajustes
+└── Support/                 Formatos en español y datos de ejemplo (-TomateDemo)
+landing/                     Web en Astro + Tailwind CSS
+scripts/make-dmg.sh          Compila en Release y crea build/Tomate.dmg
+.github/workflows/           Release con el DMG y publicación de la web
 ```
 
 Algunas decisiones:

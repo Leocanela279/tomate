@@ -93,23 +93,4 @@ import { SCREENS, SHOT, asset } from '../lib/site';
       drop-shadow(0 8px 14px rgb(0 0 0 / 0.22));
   }
 
-  /* The window tilts back and settles flat as it scrolls into view. */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .shots {
-        perspective: 1600px;
-      }
-
-      .shot img {
-        animation: settle linear both;
-        animation-timeline: view();
-        animation-range: entry 5% cover 35%;
-      }
-
-      @keyframes settle {
-        from { transform: rotateX(14deg) scale(0.95) translateY(20px); }
-        to { transform: none; }
-      }
-    }
-  }
 </style>

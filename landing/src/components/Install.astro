@@ -16,7 +16,7 @@ const steps = [
 <section id="instalar" class="px-4 pt-28 pb-24 sm:px-6 sm:pt-36">
   <div class="mx-auto max-w-6xl">
     <div class="reveal-up mx-auto max-w-2xl text-center">
-      <h2 class="text-[clamp(2rem,4.6vw,3.2rem)] leading-[1.05] font-bold tracking-[-0.03em] text-balance">
+      <h2 class="font-display text-[clamp(2.4rem,5.6vw,3.9rem)] leading-[1] font-semibold tracking-[-0.01em] text-balance">
         Instálalo en un minuto
       </h2>
       <p class="mt-4 text-lg text-ink-2 text-pretty">
@@ -35,11 +35,12 @@ const steps = [
 
     <div class="mt-14 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
       <!-- Same numbered steps as the app's Settings screen. -->
-      <ol class="panel reveal-up p-6 sm:p-8">
-        <li class="mb-6 flex items-center gap-3">
+      <div class="panel reveal-up p-6 sm:p-8">
+        <div class="mb-6 flex items-center gap-3">
           <span class="grid size-10 place-items-center rounded-full bg-field"><Icon name="shield" size={20} /></span>
-          <h3 class="text-xl font-bold">La primera vez</h3>
-        </li>
+          <h3 id="primera-vez" class="text-xl font-bold">La primera vez</h3>
+        </div>
+        <ol aria-labelledby="primera-vez">
         {
           steps.map((step, index) => (
             <li class="step">
@@ -51,7 +52,8 @@ const steps = [
             </li>
           ))
         }
-      </ol>
+        </ol>
+      </div>
 
       <div class="grid grid-cols-1 content-start gap-4">
         <div class="panel reveal-up p-6 sm:p-8">
@@ -63,10 +65,10 @@ const steps = [
             Algunas versiones de macOS lo muestran así con las apps descargadas que no son de la App Store. Abre Terminal, pega esto y vuelve a abrir Tomate:
           </p>
           <div class="mt-4 flex items-center gap-2 rounded-2xl bg-field p-2 pl-4">
-            <code class="min-w-0 flex-1 overflow-x-auto py-1.5 font-mono text-[13px] whitespace-nowrap">{command}</code>
+            <code class="min-w-0 flex-1 overflow-x-auto py-1.5 font-mono text-[13px] whitespace-nowrap" translate="no" tabindex="0" aria-label="Comando para Terminal">{command}</code>
             <button type="button" class="btn-glass glass shrink-0 !min-h-9 !px-3.5 !text-[13px]" data-copy={command}>
               <Icon name="copy" size={15} />
-              <span data-copy-label>Copiar</span>
+              <span data-copy-label aria-live="polite">Copiar</span>
             </button>
           </div>
         </div>
@@ -105,7 +107,7 @@ const steps = [
     height: 26px;
     margin-top: 1px;
     border-radius: 999px;
-    background: var(--accent);
+    background: var(--accent-fill);
     color: var(--on-accent);
     font-size: 13px;
     font-weight: 750;

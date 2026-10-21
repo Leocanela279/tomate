@@ -2,15 +2,15 @@
 import { SCREENS, SHOT, asset } from '../lib/site';
 
 /**
- * The app's own tab bar with real screenshots. It plays by itself like a GIF:
- * the pill slides to the next tab and the screen fades in, as in the app.
- * Any click or key on it hands control to the visitor.
+ * The app's own tab bar with real screenshots. It plays by itself: the pill slides to the next tab
+ * and the window turns around like a card to show the next screen. The round button pauses it (its
+ * ring shows the time left), and it also waits while the pointer or the focus is on it.
  */
 ---
 
-<div class="showcase">
-  <div class="flex justify-center">
-    <div role="tablist" aria-label="Pantallas de Tomate" data-tabbar data-autoplay class="glass relative flex rounded-full p-1">
+<div class="showcase" data-showcase>
+  <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
+    <div role="tablist" aria-label="Pantallas de Tomate" data-tabbar class="glass relative flex rounded-full p-1">
       <span data-pill class="tab-pill" aria-hidden="true"></span>
       {
         SCREENS.map((screen, index) => (
@@ -21,33 +21,54 @@ import { SCREENS, SHOT, asset } from '../lib/site';
             aria-controls={`panel-${screen.id}`}
             aria-selected={index === 0 ? 'true' : 'false'}
             tabindex={index === 0 ? 0 : -1}
-            class="tab max-[380px]:px-3"
+            class="tab"
           >
             {screen.tab}
-            {screen.badge && <span class="badge">{screen.badge}</span>}
+            {'badge' in screen && (
+              <span class="badge">
+                {screen.badge}
+                <span class="sr-only"> pendientes</span>
+              </span>
+            )}
           </button>
         ))
       }
     </div>
+
+    <button type="button" class="play-toggle btn-icon glass shrink-0" data-play hidden aria-label="Pausar la demostración">
+      <svg class="time-ring" viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="ring-track" cx="18" cy="18" r="16.5" />
+        <circle class="ring-time" data-ring cx="18" cy="18" r="16.5" pathLength="100" />
+      </svg>
+      <svg class="icon-pause" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+        <rect x="5" y="3.5" width="4.6" height="17" rx="1.6" fill="currentColor" />
+        <rect x="14.4" y="3.5" width="4.6" height="17" rx="1.6" fill="currentColor" />
+      </svg>
+      <svg class="icon-play" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+        <path fill="currentColor" d="M7 4.6v14.8a1.6 1.6 0 0 0 2.4 1.4l12-7.4a1.6 1.6 0 0 0 0-2.8l-12-7.4A1.6 1.6 0 0 0 7 4.6Z" />
+      </svg>
+    </button>
   </div>
 
   <div class="shots">
     {
       SCREENS.map((screen, index) => (
         <figure role="tabpanel" id={`panel-${screen.id}`} aria-labelledby={`tab-${screen.id}`} hidden={index !== 0} class="shot">
-          {(['tomato', 'dark'] as const).map((look) => (
-            <img
-              class={`only-${look}`}
-              src={asset(`media/${screen.id}-${look}.webp`)}
-              alt={`${screen.tab} de Tomate en modo ${look === 'tomato' ? 'tomate' : 'oscuro'}: ${screen.alt}`}
-              width={SHOT.width}
-              height={SHOT.height}
-              loading={index === 0 ? 'eager' : 'lazy'}
-              fetchpriority={index === 0 && look === 'tomato' ? 'high' : undefined}
-              decoding="async"
-            />
-          ))}
-          <figcaption class="mx-auto mt-2 max-w-xl px-2 text-center text-[15px] leading-relaxed text-ink-2 text-pretty">
+          <div class="card" data-card>
+            {(['tomato', 'dark'] as const).map((look) => (
+              <img
+                class={`only-${look}`}
+                src={asset(`media/${screen.id}-${look}.webp`)}
+                alt={`${screen.tab} de Tomate en modo ${look === 'tomato' ? 'tomate' : 'oscuro'}: ${screen.alt}`}
+                width={SHOT.width}
+                height={SHOT.height}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                fetchpriority={index === 0 && look === 'tomato' ? 'high' : undefined}
+                decoding="async"
+              />
+            ))}
+          </div>
+          <figcaption data-caption class="mx-auto mt-2 max-w-xl px-2 text-center text-[15px] leading-relaxed text-ink-2 text-pretty">
             <strong class="text-ink">{screen.title}.</strong> {screen.text}
           </figcaption>
         </figure>
@@ -59,7 +80,10 @@ import { SCREENS, SHOT, asset } from '../lib/site';
 <style>
   .shots {
     position: relative;
+    display: grid;
     margin-top: clamp(16px, 3vw, 28px);
+    /* Depth for the turn: far enough that the window does not distort. */
+    perspective: 2400px;
   }
 
   /* A warm light behind the window, the colour of the fruit. */
@@ -77,13 +101,26 @@ import { SCREENS, SHOT, asset } from '../lib/site';
     background: radial-gradient(closest-side, rgb(229 57 46 / 0.4), transparent);
   }
 
+  /* All screens share one cell, so the block keeps its height whichever caption is showing. */
   .shot {
     position: relative;
+    grid-area: 1 / 1;
     margin: 0;
   }
 
+  /* With the script, screens that are not showing stay in the cell but invisible (and inert). */
+  .shot.is-off {
+    display: block;
+    visibility: hidden;
+  }
+
+  .card {
+    transform-origin: 50% 50%;
+    will-change: transform;
+  }
+
   /* The captures have the window's rounded corners; the shadow follows them. */
-  .shot img {
+  .card img {
     display: block;
     width: 100%;
     height: auto;
@@ -93,4 +130,46 @@ import { SCREENS, SHOT, asset } from '../lib/site';
       drop-shadow(0 8px 14px rgb(0 0 0 / 0.22));
   }
 
+  /* ---------- Pause / play, with the time to the next screen as a ring ---------- */
+
+  .play-toggle {
+    position: relative;
+  }
+
+  .play-toggle svg {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+  }
+
+  /* Not "ring": that is a Tailwind utility (a box-shadow outline). */
+  .time-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .ring-track {
+    stroke: rgb(255 255 255 / 0.12);
+  }
+
+  .ring-time {
+    stroke: var(--text);
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+
+  .icon-play,
+  .play-toggle.is-paused .icon-pause {
+    display: none;
+  }
+
+  .play-toggle.is-paused .icon-play {
+    display: block;
+    /* The triangle's optical centre sits right of its box. */
+    translate: 1px 0;
+  }
 </style>

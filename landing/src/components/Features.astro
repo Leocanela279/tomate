@@ -16,7 +16,7 @@ const features = [
 
 <div class="mx-auto mt-24 max-w-6xl sm:mt-32">
   <div class="reveal-up mx-auto max-w-2xl text-center">
-    <h2 class="text-[clamp(2rem,4.6vw,3.2rem)] leading-[1.05] font-bold tracking-[-0.03em] text-balance">
+    <h2 class="font-display text-[clamp(2.4rem,5.6vw,3.9rem)] leading-[1] font-semibold tracking-[-0.01em] text-balance">
       Hecho para estudiar, no para distraer
     </h2>
     <p class="mt-4 text-lg text-ink-2 text-pretty">Lo justo para sentarte y ponerte a ello. Lo demás, fuera.</p>
@@ -38,18 +38,8 @@ const features = [
 </div>
 
 <style>
+  /* Not links, so no lift on hover: only a faint rim, to read as separate cards. */
   .feature {
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
-    transition:
-      transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1),
-      background-color 0.35s,
-      opacity 0.7s ease-out;
-  }
-
-  @media (hover: hover) {
-    .feature:hover {
-      transform: translateY(-3px);
-      background: color-mix(in srgb, var(--surface) 100%, rgb(255 255 255 / 0.04));
-    }
   }
 </style>

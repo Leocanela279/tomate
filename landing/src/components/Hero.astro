@@ -11,7 +11,7 @@ import { DMG_URL } from '../lib/site';
       Gratis para macOS · Sin cuentas
     </p>
 
-    <h1 class="mx-auto mt-6 max-w-4xl text-[clamp(2.5rem,7.4vw,5.4rem)] leading-[1.02] font-bold tracking-[-0.035em] text-balance">
+    <h1 class="mx-auto mt-6 max-w-4xl font-display text-[clamp(2.9rem,8.6vw,6.3rem)] leading-[0.98] font-semibold tracking-[-0.015em] text-balance">
       Estudia en pomodoros de <span class="accent-word">hasta 90&nbsp;minutos</span>
     </h1>
 
@@ -39,6 +39,9 @@ import { DMG_URL } from '../lib/site';
 
 <style>
   .accent-word {
+    font-style: italic;
+    /* Room for the italic overhang, which background-clip would cut. */
+    padding-inline: 0.04em;
     background: linear-gradient(100deg, var(--text) 10%, color-mix(in srgb, var(--accent) 55%, #ffb199) 55%, var(--text) 95%);
     background-size: 200% 100%;
     -webkit-background-clip: text;

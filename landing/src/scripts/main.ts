@@ -1,5 +1,5 @@
-// Everything the page does: theme switch, the sliding tab pills, the screenshots tabs,
-// the self-playing screenshots and the fade-in of sections. No framework; a few listeners.
+// Everything the page does: theme switch, the sliding tab pills, the screenshots that turn like a
+// card and play by themselves, and the fade-in of sections. No framework; a few listeners.
 
 const root = document.documentElement;
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -30,39 +30,71 @@ function syncThemeControls() {
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#211213' : '#bf2620');
 }
 
+/** Replays the button's little bounce, like .symbolEffect(.bounce). */
+function bounce(button: HTMLElement) {
+  button.classList.remove('is-bouncing');
+  void button.offsetWidth;
+  button.classList.add('is-bouncing');
+}
+
+let switching = false;
+
 /** The new look grows as a soft-edged circle from the button, as in the app (ThemeSwitch.swift). */
 function toggleTheme(from: HTMLElement) {
   const next: Theme = currentTheme() === 'dark' ? 'tomato' : 'dark';
-  from.classList.remove('is-bouncing');
-  void from.offsetWidth;
-  from.classList.add('is-bouncing');
 
-  if (!document.startViewTransition || reduceMotion.matches) {
+  if (!document.startViewTransition || reduceMotion.matches || switching) {
     applyTheme(next);
+    bounce(from);
     return;
   }
 
   const box = from.getBoundingClientRect();
   const x = box.left + box.width / 2;
   const y = box.top + box.height / 2;
-  // Opaque up to 80% of the radius, so that part must reach the farthest corner.
-  const farthest = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-  const radius = (farthest / 0.8) * 1.02;
+  // The circle is opaque up to 80% of its radius: it starts already covering the button,
+  // so the change is visible from the first frame, and ends past the farthest corner.
+  const start = box.width / 2 / 0.8;
+  const end = (Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y)) / 0.8) * 1.02;
 
   root.style.setProperty('--reveal-x', `${x}px`);
   root.style.setProperty('--reveal-y', `${y}px`);
+  root.style.setProperty('--reveal-start', `${start}px`);
+  root.classList.add('theme-swap');
+  switching = true;
 
   const transition = document.startViewTransition(() => applyTheme(next));
-  transition.ready.then(() => {
-    root.animate(
-      { '--reveal': ['0px', `${radius}px`] } as PropertyIndexedKeyframes,
-      { duration: 750, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' },
-    );
+  transition.ready
+    .then(() => {
+      bounce(from);
+      root.animate(
+        { '--reveal': [`${start}px`, `${end}px`] } as PropertyIndexedKeyframes,
+        {
+          duration: 620,
+          // Leaves the button fast and slows down as it fills the page.
+          easing: 'cubic-bezier(0.3, 0.7, 0.25, 1)',
+          fill: 'forwards',
+          pseudoElement: '::view-transition-new(root)',
+        },
+      );
+    })
+    .catch(() => bounce(from));
+  transition.finished.finally(() => {
+    root.classList.remove('theme-swap');
+    switching = false;
   });
+}
+
+/** The screenshot on show exists in both looks; fetch the other one before the click needs it. */
+function preloadOtherLook() {
+  const other = currentTheme() === 'dark' ? 'only-tomato' : 'only-dark';
+  for (const img of document.querySelectorAll<HTMLImageElement>(`.shot:not(.is-off) img.${other}`)) img.loading = 'eager';
 }
 
 for (const button of document.querySelectorAll<HTMLElement>('[data-theme-toggle]')) {
   button.addEventListener('click', () => toggleTheme(button));
+  button.addEventListener('pointerenter', preloadOtherLook);
+  button.addEventListener('focus', preloadOtherLook);
 }
 syncThemeControls();
 
@@ -71,7 +103,7 @@ syncThemeControls();
 /** Puts the glass pill of a tab bar under its selected item. */
 function placePill(bar: HTMLElement, animate = true) {
   const pill = bar.querySelector<HTMLElement>('[data-pill]');
-  const selected = bar.querySelector<HTMLElement>('[aria-selected="true"], [aria-current="true"]');
+  const selected = bar.querySelector<HTMLElement>('[aria-selected="true"], [aria-current="location"]');
   if (!pill || !selected) return;
   if (!animate) pill.style.transition = 'none';
   pill.style.width = `${selected.offsetWidth}px`;
@@ -99,7 +131,7 @@ function setCurrent(id: string) {
   if (!nav) return;
   for (const link of navLinks) {
     const on = link.hash === `#${id}`;
-    if (on) link.setAttribute('aria-current', 'true');
+    if (on) link.setAttribute('aria-current', 'location');
     else link.removeAttribute('aria-current');
   }
   placePill(nav);
@@ -130,68 +162,218 @@ const spy = new IntersectionObserver(
 );
 sections.forEach((section) => spy.observe(section));
 
-// ---------- Screens: the app's tab switch, with real screenshots ----------
+// ---------- Screens: the app's tab bar over real screenshots, turning like a card ----------
 
-for (const bar of document.querySelectorAll<HTMLElement>('[data-tabbar][role="tablist"]')) {
+const ADVANCE_MS = 4200;
+
+/** Resolves once the screenshot shown in the current look is ready to paint (or after a short wait). */
+function imageReady(panel: HTMLElement) {
+  const img = panel.querySelector<HTMLImageElement>(currentTheme() === 'dark' ? 'img.only-dark' : 'img.only-tomato');
+  if (!img) return Promise.resolve();
+  img.loading = 'eager';
+  const ready = img.complete && img.naturalWidth ? Promise.resolve() : img.decode().catch(() => {});
+  return Promise.race([ready, new Promise((resolve) => setTimeout(resolve, 700))]);
+}
+
+for (const showcase of document.querySelectorAll<HTMLElement>('[data-showcase]')) {
+  const bar = showcase.querySelector<HTMLElement>('[role="tablist"]')!;
   const tabs = [...bar.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+  const panels = tabs.map((tab) => document.getElementById(tab.getAttribute('aria-controls') ?? '')!);
+  const playButton = showcase.querySelector<HTMLButtonElement>('[data-play]')!;
+  const ring = showcase.querySelector<SVGCircleElement>('[data-ring]')!;
   let current = Math.max(0, tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true'));
 
-  const select = (index: number, focus = false) => {
-    current = (index + tabs.length) % tabs.length;
+  // Every screen stays in the same grid cell, so the height never jumps; only one is visible.
+  // `shown` is that one; `current` is the selected tab, which leads it during a turn.
+  let shown = current;
+  const show = (index: number) => {
+    shown = index;
+    panels.forEach((panel, i) => {
+      panel.hidden = false;
+      panel.classList.toggle('is-off', i !== index);
+      panel.inert = i !== index;
+    });
+  };
+  show(current);
+
+  // ----- The turn -----
+
+  let turn = 0; // Bumped on every change, so an older, slower turn never finishes on top of a newer one.
+  const running: Animation[] = [];
+  const stopRunning = () => running.splice(0).forEach((animation) => animation.cancel());
+
+  async function goTo(index: number, direction: 1 | -1) {
+    const next = (index + tabs.length) % tabs.length;
+    if (next === current) return;
+    const from = panels[shown];
+    const to = panels[next];
+    current = next;
+    const mine = ++turn;
+
     tabs.forEach((tab, i) => {
-      const on = i === current;
+      const on = i === next;
       tab.setAttribute('aria-selected', String(on));
       tab.tabIndex = on ? 0 : -1;
-      const panel = document.getElementById(tab.getAttribute('aria-controls') ?? '');
-      if (!panel) return;
-      // The old screen leaves at once and the new one fades in (MainView.screenChange).
-      panel.hidden = !on;
-      if (on) {
-        panel.classList.remove('screen-in');
-        void panel.offsetWidth;
-        panel.classList.add('screen-in');
-      }
     });
-    if (focus) tabs[current].focus();
     placePill(bar);
-  };
+    stopRunning();
 
-  // Plays by itself like a GIF while it is on screen. Touching it stops that for good.
-  let timer: number | undefined;
-  let visible = false;
-  let handedOver = false;
-  const schedule = () => {
-    clearTimeout(timer);
-    if (handedOver || !visible || document.hidden || reduceMotion.matches || !bar.hasAttribute('data-autoplay')) return;
-    timer = window.setTimeout(() => {
-      select(current + 1);
-      schedule();
-    }, 3200);
-  };
-  const handOver = () => {
-    handedOver = true;
-    clearTimeout(timer);
-  };
+    const ready = imageReady(to);
 
-  new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting;
-    schedule();
-  }, { threshold: 0.35 }).observe(bar.parentElement?.parentElement ?? bar);
-  document.addEventListener('visibilitychange', schedule);
+    if (reduceMotion.matches) {
+      // No turning: a short cross-fade.
+      await ready;
+      if (mine !== turn) return;
+      show(next);
+      running.push(to.animate({ opacity: [0, 1] }, { duration: 220, easing: 'ease-out' }));
+      return;
+    }
+
+    const fromCard = from.querySelector<HTMLElement>('[data-card]')!;
+    const toCard = to.querySelector<HTMLElement>('[data-card]')!;
+    const fromCaption = from.querySelector<HTMLElement>('[data-caption]')!;
+    const toCaption = to.querySelector<HTMLElement>('[data-caption]')!;
+
+    // First half, straight away: the window turns away until it is edge-on, smaller and in shadow.
+    // The next screenshot finishes loading meanwhile, if it had not already.
+    const away = 92 * direction;
+    const out = fromCard.animate(
+      [
+        { transform: 'rotateY(0deg) scale(1)', filter: 'brightness(1)' },
+        { transform: `rotateY(${-away}deg) scale(0.92)`, filter: 'brightness(0.55)' },
+      ],
+      { duration: 280, easing: 'cubic-bezier(0.45, 0, 0.8, 0.4)', fill: 'forwards' },
+    );
+    running.push(out, fromCaption.animate({ opacity: [1, 0] }, { duration: 180, easing: 'ease-in', fill: 'forwards' }));
+    try {
+      await Promise.all([out.finished, ready]);
+    } catch {
+      return; // Cancelled by a newer turn.
+    }
+    if (mine !== turn) return;
+
+    // Second half: the next screen comes round from the other side and settles with a slight spring.
+    show(next);
+    stopRunning();
+    running.push(
+      toCard.animate(
+        [
+          { transform: `rotateY(${away}deg) scale(0.92)`, filter: 'brightness(0.55)' },
+          { transform: 'rotateY(0deg) scale(1)', filter: 'brightness(1)' },
+        ],
+        { duration: 620, easing: 'linear(0, 0.157, 0.438, 0.68, 0.849, 0.951, 1.003, 1.022, 1.022, 1.014, 1.006, 1.001, 1)' },
+      ),
+      toCaption.animate(
+        { opacity: [0, 1], transform: ['translateY(6px)', 'none'] },
+        { duration: 360, delay: 120, easing: 'ease-out', fill: 'backwards' },
+      ),
+    );
+  }
+
+  // ----- Playing by itself -----
+  // `playing` is the visitor's choice; waiting() holds it anyway while the pointer or the focus
+  // is on it, while it is off screen and while the tab is in the background.
+
+  let playing = !reduceMotion.matches;
+  let hover = false;
+  let focusInside = false;
+  let onScreen = false;
+  let timer: Animation | undefined;
+
+  const waiting = () => hover || focusInside || !onScreen || document.hidden;
+
+  function startTimer() {
+    timer?.cancel();
+    timer = ring.animate({ strokeDashoffset: [100, 0] }, { duration: ADVANCE_MS, easing: 'linear', fill: 'forwards' });
+    timer.onfinish = () => {
+      void goTo(current + 1, 1);
+      startTimer();
+      sync();
+    };
+  }
+
+  function sync() {
+    playButton.classList.toggle('is-paused', !playing);
+    const label = playing ? 'Pausar la demostración' : 'Reproducir la demostración';
+    playButton.setAttribute('aria-label', label);
+    playButton.title = label;
+    if (!playing) {
+      timer?.cancel();
+      timer = undefined;
+      return;
+    }
+    if (!timer) startTimer();
+    if (waiting()) timer?.pause();
+    else timer?.play();
+  }
+
+  playButton.hidden = false;
+  playButton.addEventListener('click', () => {
+    playing = !playing;
+    if (playing) void goTo(current + 1, 1); // Something happens right away when resuming.
+    sync();
+  });
+
+  showcase.addEventListener('pointerenter', (event) => {
+    if (event.pointerType !== 'mouse') return;
+    hover = true;
+    sync();
+  });
+  showcase.addEventListener('pointerleave', () => {
+    hover = false;
+    sync();
+  });
+  showcase.addEventListener('focusin', () => {
+    focusInside = true;
+    sync();
+  });
+  showcase.addEventListener('focusout', (event) => {
+    if (showcase.contains(event.relatedTarget as Node | null)) return;
+    focusInside = false;
+    sync();
+  });
+  new IntersectionObserver(
+    ([entry]) => {
+      onScreen = entry.isIntersecting;
+      sync();
+    },
+    { threshold: 0.35 },
+  ).observe(showcase);
+  document.addEventListener('visibilitychange', sync);
+
+  // Choosing a screen yourself stops the show; the button resumes it.
+  const choose = (index: number, direction: 1 | -1, focus: boolean) => {
+    playing = false;
+    sync();
+    void goTo(index, direction);
+    if (focus) tabs[(index + tabs.length) % tabs.length].focus();
+  };
 
   tabs.forEach((tab, index) => {
-    tab.addEventListener('click', () => {
-      handOver();
-      select(index);
-    });
+    tab.addEventListener('click', () => choose(index, index > current ? 1 : -1, false));
     tab.addEventListener('keydown', (event) => {
-      const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
-      if (!step) return;
+      const moves: Record<string, [number, 1 | -1]> = {
+        ArrowRight: [index + 1, 1],
+        ArrowLeft: [index - 1, -1],
+        Home: [0, -1],
+        End: [tabs.length - 1, 1],
+      };
+      const move = moves[event.key];
+      if (!move) return;
       event.preventDefault();
-      handOver();
-      select(index + step, true);
+      choose(move[0], move[1], true);
     });
   });
+
+  sync();
+
+  // Once the page has settled, fetch the other screens in the current look, so the first turn
+  // never waits on the network.
+  const warm = () => panels.forEach((panel) => void imageReady(panel));
+  const idle = (callback: () => void) =>
+    'requestIdleCallback' in window ? requestIdleCallback(callback, { timeout: 2500 }) : setTimeout(callback, 1200);
+  if (document.readyState === 'complete') idle(warm);
+  else addEventListener('load', () => idle(warm), { once: true });
 }
 
 // ---------- Sections fade up the first time they appear ----------

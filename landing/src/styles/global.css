@@ -1,21 +1,26 @@
 @import "tailwindcss";
 @import "@fontsource-variable/nunito";
+@import "@fontsource-variable/cormorant-garamond/wght.css";
+@import "@fontsource-variable/cormorant-garamond/wght-italic.css";
 
-/* The two looks of Tomate, with the same roles and values as the app (Design/Theme.swift). */
+/* The two looks of Tomate, with the same roles as the app (Design/Theme.swift). The top red and the
+   secondary text are a touch deeper and stronger than in the app so body text keeps 4.5:1 here. */
 :root {
   --cream: #fff1ec;
   --leaf: #63c46e;
   --wine: 74 6 10;
 
-  --bg-top: #bf2620;
+  --bg-top: #ad211b;
   --bg-bottom: #6e0a0f;
-  --glow: rgb(255 111 82 / 0.3);
+  --glow: rgb(255 111 82 / 0.16);
   --text: var(--cream);
-  --text-2: rgb(255 241 236 / 0.78);
-  --text-3: rgb(255 241 236 / 0.58);
+  --text-2: rgb(255 241 236 / 0.9);
+  --text-3: rgb(255 241 236 / 0.84);
   --surface: rgb(var(--wine) / 0.3);
   --field: rgb(var(--wine) / 0.35);
   --accent: var(--cream);
+  /* Filled buttons and step numbers: the accent, or a deeper red where cream text sits on it. */
+  --accent-fill: var(--accent);
   --on-accent: #6e0a0f;
   --focus: var(--cream);
   --rest: var(--leaf);
@@ -36,6 +41,7 @@
   --surface: rgb(255 255 255 / 0.05);
   --field: rgb(255 255 255 / 0.07);
   --accent: #e5392e;
+  --accent-fill: #cc2f25;
   --on-accent: var(--cream);
   --focus: #e5392e;
   --dial-body: rgb(229 57 46 / 0.1);
@@ -46,12 +52,15 @@
 
 @theme inline {
   --font-sans: ui-rounded, "SF Pro Rounded", "Nunito Variable", system-ui, sans-serif;
+  /* Headlines only. The interface keeps the app's rounded face. */
+  --font-display: "Cormorant Garamond Variable", "Cormorant Garamond", Georgia, serif;
   --color-ink: var(--text);
   --color-ink-2: var(--text-2);
   --color-ink-3: var(--text-3);
   --color-surface: var(--surface);
   --color-field: var(--field);
   --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
   --color-on-accent: var(--on-accent);
   --color-focus: var(--focus);
   --color-rest: var(--rest);
@@ -84,7 +93,7 @@ body::before {
 }
 
 ::selection {
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--on-accent);
 }
 
@@ -116,13 +125,14 @@ body::before {
   min-height: 44px;
   padding: 0 22px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--accent-fill);
   color: var(--on-accent);
   font-weight: 650;
   font-size: 15px;
   transition: transform 0.12s ease-out, opacity 0.12s ease-out, background-color 0.5s, color 0.5s;
   &:hover { opacity: 0.92; }
   &:active { transform: scale(0.97); opacity: 0.85; }
+  @media (prefers-reduced-motion: reduce) { &:active { transform: none; } }
 }
 
 @utility btn-glass {
@@ -151,6 +161,28 @@ body::before {
   &:active { opacity: 0.75; transform: scale(0.94); }
 }
 
+/* Taps act at once (no double-tap zoom wait) and without the grey flash. */
+:where(a, button, [role="tab"]) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* First stop for keyboard users: jump past the header. */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  font-weight: 700;
+  transform: translateY(-160%);
+  transition: transform 0.2s ease-out;
+  &:focus-visible { transform: none; }
+}
+
 /* Focus ring in the theme colour. */
 :where(a, button, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
@@ -165,6 +197,14 @@ body::before {
   initial-value: 0px;
 }
 
+/* While the theme changes, colours jump straight to the new look. Otherwise the new view would show
+   buttons still fading from the old colours, a second change after the circle has passed. */
+:root.theme-swap *:not(.theme-toggle svg),
+:root.theme-swap *::before,
+:root.theme-swap *::after {
+  transition: none !important;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -173,6 +213,7 @@ body::before {
 
 /* Soft edge, like the app: opaque for 80% of the radius, then fading out. */
 ::view-transition-new(root) {
+  --reveal: var(--reveal-start, 0px);
   -webkit-mask-image: radial-gradient(circle var(--reveal) at var(--reveal-x, 100%) var(--reveal-y, 0%), #000 80%, transparent 100%);
   mask-image: radial-gradient(circle var(--reveal) at var(--reveal-x, 100%) var(--reveal-y, 0%), #000 80%, transparent 100%);
 }
@@ -207,6 +248,9 @@ body::before {
   gap: 6px;
   min-height: 32px;
   padding: 0 16px;
+  @media (pointer: coarse) { min-height: 38px; }
+  /* Phones: three tabs and the play button share one row. */
+  @media (width < 440px) { padding: 0 11px; }
   border-radius: 999px;
   font-size: 13px;
   font-weight: 650;
@@ -214,7 +258,7 @@ body::before {
   color: var(--text-2);
   transition: color 0.35s;
   &:hover { color: var(--text); }
-  &[aria-current="true"], &[aria-selected="true"] { color: var(--text); }
+  &[aria-current="location"], &[aria-selected="true"] { color: var(--text); }
 }
 
 /* GlassPill in MainView.swift: tinted body, light on the top edge, bright rim, soft shadow. */
@@ -252,15 +296,6 @@ body::before {
   font-variant-numeric: tabular-nums;
 }
 
-/* A new screen fades in; the old one is already gone (MainView.screenChange). */
-.screen-in {
-  animation: screen-in 0.25s ease-out;
-}
-
-@keyframes screen-in {
-  from { opacity: 0; }
-}
-
 /* Screenshots exist in both looks; show the one that matches the page. */
 :root[data-theme="dark"] .only-tomato,
 :root:not([data-theme="dark"]) .only-dark {
@@ -271,5 +306,5 @@ body::before {
   html { scroll-behavior: auto; }
   .js .reveal-up { opacity: 1; transform: none; transition: none; }
   .tab-pill { transition: opacity 0.2s; }
-  .screen-in { animation: none; }
+  .skip-link { transition: none; }
 }

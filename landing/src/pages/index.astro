@@ -11,8 +11,9 @@ import Footer from '../components/Footer.astro';
   title="Tomate · Pomodoros de hasta 90 minutos para estudiar en tu Mac"
   description="Temporizador pomodoro gratuito para macOS: sesiones de 25 a 90 minutos, descanso a mitad, pomodoros programados con aviso, barra de menú e historial. Sin cuentas."
 >
+  <a href="#contenido" class="skip-link">Saltar al contenido</a>
   <Header />
-  <main>
+  <main id="contenido" tabindex="-1" class="outline-none">
     <Hero />
     <section id="funciones" class="px-4 sm:px-6">
       <Features />

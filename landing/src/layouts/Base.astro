@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { asset } from '../lib/site';
+import displayFont from '@fontsource-variable/cormorant-garamond/files/cormorant-garamond-latin-wght-normal.woff2?url';
 
 interface Props {
   title: string;
@@ -19,6 +20,8 @@ const image = Astro.site ? new URL(asset('media/og.jpg'), Astro.site).href : ass
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#bf2620" />
+    <!-- The headline face, so the hero does not reflow when it arrives. -->
+    <link rel="preload" href={displayFont} as="font" type="font/woff2" crossorigin />
     <link rel="icon" type="image/png" href={asset('favicon.png')} />
     <link rel="apple-touch-icon" href={asset('apple-touch-icon.png')} />
 

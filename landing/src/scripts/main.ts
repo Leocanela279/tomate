@@ -392,15 +392,26 @@ document.querySelectorAll('.reveal-up').forEach((element) => reveal.observe(elem
 
 // ---------- Copy buttons ----------
 
+/** Swaps the label with a short unblur, so the new word settles in instead of popping. */
+function setLabel(label: HTMLElement | null, text: string) {
+  if (!label || label.textContent === text) return;
+  label.textContent = text;
+  label.animate({ opacity: [0.3, 1], filter: ['blur(3px)', 'blur(0)'] }, { duration: 220, easing: 'ease-out' });
+}
+
 for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy]')) {
-  const label = button.querySelector('[data-copy-label]');
+  const label = button.querySelector<HTMLElement>('[data-copy-label]');
+  let reset: ReturnType<typeof setTimeout> | undefined;
   button.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(button.dataset.copy ?? '');
-      if (label) {
-        label.textContent = 'Copiado';
-        setTimeout(() => (label.textContent = 'Copiar'), 1600);
-      }
+      clearTimeout(reset); // Another click restarts the wait instead of flipping back early.
+      button.classList.add('is-copied');
+      setLabel(label, 'Copiado');
+      reset = setTimeout(() => {
+        button.classList.remove('is-copied');
+        setLabel(label, 'Copiar');
+      }, 1600);
     } catch {}
   });
 }

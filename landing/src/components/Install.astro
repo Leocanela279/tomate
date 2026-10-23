@@ -43,7 +43,7 @@ const steps = [
         <ol aria-labelledby="primera-vez">
         {
           steps.map((step, index) => (
-            <li class="step">
+            <li class="step" style={`--i: ${index}`}>
               <span class="step-number">{index + 1}</span>
               <div>
                 <p class="font-semibold">{step.title}</p>
@@ -66,8 +66,11 @@ const steps = [
           </p>
           <div class="mt-4 flex items-center gap-2 rounded-2xl bg-field p-2 pl-4">
             <code class="min-w-0 flex-1 overflow-x-auto py-1.5 font-mono text-[13px] whitespace-nowrap" translate="no" tabindex="0" aria-label="Comando para Terminal">{command}</code>
-            <button type="button" class="btn-glass glass shrink-0 !min-h-9 !px-3.5 !text-[13px]" data-copy={command}>
-              <Icon name="copy" size={15} />
+            <button type="button" class="copy-button btn-glass glass shrink-0 !min-h-9 !px-3.5 !text-[13px]" data-copy={command}>
+              <span class="copy-icons" aria-hidden="true">
+                <Icon name="copy" size={15} class="icon-copy" />
+                <Icon name="check" size={15} class="icon-check" />
+              </span>
               <span data-copy-label aria-live="polite">Copiar</span>
             </button>
           </div>
@@ -82,7 +85,7 @@ const steps = [
             <li><strong class="text-ink">Acepta las notificaciones.</strong> Sin ellas no te puede avisar de los pomodoros programados.</li>
             <li><strong class="text-ink">Concentración, opcional.</strong> En Ajustes (⌘,) te explica cómo activarla al estudiar.</li>
             <li>
-              <strong class="text-ink">¿Desconfías?</strong> Revisa el <a class="underline decoration-ink-3 underline-offset-3 hover:decoration-ink" href={REPO_URL}>código en GitHub</a> o compílalo tú con Xcode.
+              <strong class="text-ink">¿Desconfías?</strong> Revisa el <a class="underline decoration-ink-3 underline-offset-3 transition-colors hover:decoration-ink" href={REPO_URL}>código en GitHub</a> o compílalo tú con Xcode.
             </li>
           </ul>
         </div>
@@ -112,5 +115,58 @@ const steps = [
     font-size: 13px;
     font-weight: 750;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* The steps follow one another in, once their panel shows. */
+  :global(.js) .step {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
+    transition-delay: calc(var(--i) * 60ms + 120ms);
+  }
+
+  :global(.is-visible) .step {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Copy turns into a check, the two blurred into each other so they read as one symbol. */
+  .copy-icons {
+    display: grid;
+  }
+
+  .copy-icons :global(svg) {
+    grid-area: 1 / 1;
+    transition:
+      transform 0.35s var(--spring),
+      opacity 0.2s ease-out,
+      filter 0.2s ease-out;
+  }
+
+  .copy-icons :global(.icon-check),
+  .copy-button.is-copied .copy-icons :global(.icon-copy) {
+    opacity: 0;
+    transform: scale(0.6);
+    filter: blur(2px);
+  }
+
+  .copy-button.is-copied .copy-icons :global(.icon-check) {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.js) .step {
+      transform: none;
+      transition: opacity 0.4s ease-out;
+    }
+
+    .copy-icons :global(svg) {
+      transform: none !important;
+      transition: opacity 0.2s ease-out;
+    }
   }
 </style>

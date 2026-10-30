@@ -241,8 +241,10 @@ body::before {
   from { opacity: 0; }
 }
 
+/* `backwards`, not `both`: a filter kept after the end, even blur(0), cuts the glass inside off
+   from the page behind it. */
 .enter {
-  animation: enter 0.8s var(--ease-out) both;
+  animation: enter 0.8s var(--ease-out) backwards;
   animation-delay: calc(var(--i, 0) * 80ms + 80ms);
 }
 

@@ -28,6 +28,8 @@
   --shadow: rgb(var(--wine));
   --glass: rgb(255 255 255 / 0.1);
   --glass-edge: rgb(255 255 255 / 0.22);
+  /* The glass made solid, for Reduce transparency and Increase contrast. */
+  --glass-solid: #9e1d19;
 
   color-scheme: dark;
 }
@@ -48,6 +50,7 @@
   --shadow: #000;
   --glass: rgb(255 255 255 / 0.06);
   --glass-edge: rgb(255 255 255 / 0.14);
+  --glass-solid: #2c1a1b;
 }
 
 @theme inline {
@@ -104,15 +107,29 @@ body::before {
   border-radius: 24px;
 }
 
-/* Liquid Glass, approximated: frosted, tinted by what is behind, light on the top edge. */
+/* Liquid Glass, approximated: frosted, tinted by what is behind, light on the top edge. Buttons
+   lighten the tint (--glass-tint) and the light (--glass-light), and press the glass closer to the
+   page (--glass-drop). The solid fallbacks below ignore all three. */
 @utility glass {
-  background: var(--glass);
+  background: var(--glass-tint, var(--glass));
   -webkit-backdrop-filter: blur(18px) saturate(170%);
   backdrop-filter: blur(18px) saturate(170%);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    inset 0 1px 0 rgb(255 255 255 / var(--glass-light, 0.22)),
     inset 0 0 0 1px var(--glass-edge),
-    0 6px 20px rgb(0 0 0 / 0.12);
+    0 var(--glass-drop, 6px 20px) rgb(0 0 0 / 0.12);
+  /* Nothing to see through: a solid surface; with more contrast, a rim in the text colour too. */
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--glass-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  @media (prefers-contrast: more) {
+    background: var(--glass-solid);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: inset 0 0 0 1px var(--text);
+  }
 }
 
 /* ---------- Buttons, as in Design/Controls.swift ---------- */
@@ -146,8 +163,9 @@ body::before {
   color: var(--text);
   font-weight: 650;
   font-size: 14px;
-  transition: opacity 0.12s ease-out, transform 0.16s ease-out;
-  &:active { opacity: 0.75; transform: scale(0.97); }
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out, background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  @media (hover: hover) and (pointer: fine) { &:hover { --glass-tint: color-mix(in srgb, var(--glass), white 6%); --glass-light: 0.4; } }
+  &:active { --glass-drop: 2px 8px; opacity: 0.75; transform: scale(0.97); }
   @media (prefers-reduced-motion: reduce) { &:active { transform: none; } }
 }
 
@@ -158,8 +176,9 @@ body::before {
   height: 36px;
   border-radius: 999px;
   color: var(--text);
-  transition: opacity 0.12s, transform 0.12s;
-  &:active { opacity: 0.75; transform: scale(0.94); }
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out, background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+  @media (hover: hover) and (pointer: fine) { &:hover { --glass-tint: color-mix(in srgb, var(--glass), white 6%); --glass-light: 0.4; } }
+  &:active { --glass-drop: 2px 8px; opacity: 0.75; transform: scale(0.94); }
 }
 
 /* Taps act at once (no double-tap zoom wait) and without the grey flash. */
@@ -241,8 +260,10 @@ body::before {
   from { opacity: 0; }
 }
 
+/* `backwards`, not `both`: a filter kept after the end, even blur(0), cuts the glass inside off
+   from the page behind it. */
 .enter {
-  animation: enter 0.8s var(--ease-out) both;
+  animation: enter 0.8s var(--ease-out) backwards;
   animation-delay: calc(var(--i, 0) * 80ms + 80ms);
 }
 
@@ -256,20 +277,27 @@ body::before {
 }
 
 .enter-header {
-  animation: enter-down 0.6s var(--ease-out) both;
+  animation: enter-down 0.6s var(--ease-out) backwards;
 }
 
-/* Only hidden when the script is there to show it again. */
-.js .reveal-up {
+/* Only hidden when the script is there to show it again. An animation, not a transition, so it
+   can sit on a button without replacing the button's own transitions. */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(18px); }
+}
+
+.js .reveal-up:not(.is-visible) {
   opacity: 0;
-  transform: translateY(18px);
-  transition: opacity 0.8s var(--ease-out), transform 0.8s var(--ease-out);
-  transition-delay: var(--reveal-delay, 0ms);
 }
 
 .js .reveal-up.is-visible {
-  opacity: 1;
-  transform: none;
+  animation: reveal-up 0.8s var(--ease-out) var(--reveal-delay, 0ms) backwards;
+}
+
+/* Glass inside a revealing card waits until the card is opaque, then arrives on its own: while
+   the card is still fading, the glass would show a flat tint and snap to glass at the end. */
+.js .reveal-up.after-card {
+  --reveal-delay: 0.8s;
 }
 
 /* ---------- Tab bars: header navigation and the screens switcher ---------- */
@@ -339,7 +367,7 @@ body::before {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .js .reveal-up { transform: none; transition: opacity 0.4s ease-out; }
+  .js .reveal-up.is-visible { animation: fade-in 0.4s ease-out var(--reveal-delay, 0ms) backwards; }
   .enter, .enter.enter-plain, .enter-header { animation: fade-in 0.5s ease-out both; animation-delay: calc(var(--i, 0) * 60ms); }
   .tab-pill { transition: opacity 0.2s; }
   .skip-link { transition: none; }

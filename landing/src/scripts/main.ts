@@ -201,6 +201,18 @@ for (const showcase of document.querySelectorAll<HTMLElement>('[data-showcase]')
   let turn = 0; // Bumped on every change, so an older, slower turn never finishes on top of a newer one.
   const running: Animation[] = [];
   const stopRunning = () => running.splice(0).forEach((animation) => animation.cancel());
+  /** Interrupted mid-turn: the window keeps the pose it is in, so the next turn starts from there
+   *  instead of jumping back flat first. */
+  const freezeRunning = () =>
+    running.splice(0).forEach((animation) => {
+      try {
+        animation.commitStyles();
+      } catch {}
+      animation.cancel();
+    });
+  /** Drops a pose kept by freezeRunning() once its screen is out of sight. */
+  const clearPose = (...elements: HTMLElement[]) =>
+    elements.forEach((element) => ['transform', 'filter', 'opacity'].forEach((name) => element.style.removeProperty(name)));
 
   async function goTo(index: number, direction: 1 | -1) {
     const next = (index + tabs.length) % tabs.length;
@@ -216,12 +228,12 @@ for (const showcase of document.querySelectorAll<HTMLElement>('[data-showcase]')
       tab.tabIndex = on ? 0 : -1;
     });
     placePill(bar);
-    stopRunning();
 
     const ready = imageReady(to);
 
     if (reduceMotion.matches) {
       // No turning: a short cross-fade.
+      stopRunning();
       await ready;
       if (mine !== turn) return;
       show(next);
@@ -235,16 +247,16 @@ for (const showcase of document.querySelectorAll<HTMLElement>('[data-showcase]')
     const toCaption = to.querySelector<HTMLElement>('[data-caption]')!;
 
     // First half, straight away: the window turns away until it is edge-on, smaller and in shadow.
-    // The next screenshot finishes loading meanwhile, if it had not already.
+    // The next screenshot finishes loading meanwhile, if it had not already. Only the end pose is
+    // given, so a turn that interrupts another one starts from wherever the window is.
+    freezeRunning();
     const away = 92 * direction;
-    const out = fromCard.animate(
-      [
-        { transform: 'rotateY(0deg) scale(1)', filter: 'brightness(1)' },
-        { transform: `rotateY(${-away}deg) scale(0.92)`, filter: 'brightness(0.55)' },
-      ],
-      { duration: 280, easing: 'cubic-bezier(0.45, 0, 0.8, 0.4)', fill: 'forwards' },
-    );
-    running.push(out, fromCaption.animate({ opacity: [1, 0] }, { duration: 180, easing: 'ease-in', fill: 'forwards' }));
+    const out = fromCard.animate([{ transform: `rotateY(${-away}deg) scale(0.92)`, filter: 'brightness(0.55)' }], {
+      duration: 280,
+      easing: 'cubic-bezier(0.45, 0, 0.8, 0.4)',
+      fill: 'forwards',
+    });
+    running.push(out, fromCaption.animate({ opacity: 0 }, { duration: 180, easing: 'ease-in', fill: 'forwards' }));
     try {
       await Promise.all([out.finished, ready]);
     } catch {
@@ -255,6 +267,7 @@ for (const showcase of document.querySelectorAll<HTMLElement>('[data-showcase]')
     // Second half: the next screen comes round from the other side and settles with a slight spring.
     show(next);
     stopRunning();
+    clearPose(fromCard, fromCaption);
     running.push(
       toCard.animate(
         [
@@ -389,6 +402,11 @@ const reveal = new IntersectionObserver(
   { rootMargin: '0px 0px -8% 0px' },
 );
 document.querySelectorAll('.reveal-up').forEach((element) => reveal.observe(element));
+
+// ---------- Press feedback on iOS ----------
+
+// iOS Safari only applies :active (the buttons' press state) while a touchstart listener exists.
+document.addEventListener('touchstart', () => {}, { passive: true });
 
 // ---------- Copy buttons ----------
 

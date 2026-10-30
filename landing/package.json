@@ -6,13 +6,25 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "video": "remotion render TomateIntro video/tomate-intro.mp4 && remotion render TomateAssemble video/tomate-assemble.mp4"
   },
   "dependencies": {
     "@fontsource-variable/cormorant-garamond": "^5.3.0",
     "@fontsource-variable/nunito": "^5.3.0",
+    "@remotion/google-fonts": "^4.0.539",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.0",
+    "culori": "^4.0.2",
+    "remotion": "^4.0.539",
     "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@remotion/cli": "^4.0.539",
+    "@remotion/fonts": "^4.0.539",
+    "@types/culori": "^4.0.1",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

@@ -15,22 +15,25 @@ const steps = [
 
 <section id="instalar" class="px-4 pt-28 pb-24 sm:px-6 sm:pt-36">
   <div class="mx-auto max-w-6xl">
-    <div class="reveal-up mx-auto max-w-2xl text-center">
-      <h2 class="font-display text-[clamp(2.4rem,5.6vw,3.9rem)] leading-[1] font-semibold tracking-[-0.01em] text-balance">
-        Instálalo en un minuto
-      </h2>
-      <p class="mt-4 text-lg text-ink-2 text-pretty">
-        Tomate es gratuito y su código está en GitHub. Como no está firmado con un certificado de desarrollador de Apple,
-        la primera vez macOS te pedirá permiso para abrirlo.
-      </p>
+    <div class="mx-auto max-w-2xl text-center">
+      <div class="reveal-up">
+        <h2 class="font-display text-[clamp(2.4rem,5.6vw,3.9rem)] leading-[1] font-semibold tracking-[-0.01em] text-balance">
+          Instálalo en un minuto
+        </h2>
+        <p class="mt-4 text-lg text-ink-2 text-pretty">
+          Tomate es gratuito y su código está en GitHub. Como no está firmado con un certificado de desarrollador de Apple,
+          la primera vez macOS te pedirá permiso para abrirlo.
+        </p>
+      </div>
+      <!-- Each button reveals on its own: a fading parent would cut the glass off from the page behind it. -->
       <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <a href={DMG_URL} class="btn-primary !min-h-12 !px-7 !text-base">
+        <a href={DMG_URL} style="--reveal-delay: 80ms" class="reveal-up btn-primary !min-h-12 !px-7 !text-base">
           <Icon name="download" size={19} />
           Descargar Tomate.dmg
         </a>
-        <a href={RELEASES_URL} class="btn-glass glass !min-h-12">Todas las versiones</a>
+        <a href={RELEASES_URL} style="--reveal-delay: 140ms" class="reveal-up btn-glass glass !min-h-12">Todas las versiones</a>
       </div>
-      <p class="mt-4 text-[13px] text-ink-3">macOS 14 Sonoma o posterior · Apple Silicon e Intel</p>
+      <p style="--reveal-delay: 180ms" class="reveal-up mt-4 text-[13px] text-ink-3">macOS 14 Sonoma o posterior · Apple Silicon e Intel</p>
     </div>
 
     <div class="mt-14 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
@@ -66,7 +69,7 @@ const steps = [
           </p>
           <div class="mt-4 flex items-center gap-2 rounded-2xl bg-field p-2 pl-4">
             <code class="min-w-0 flex-1 overflow-x-auto py-1.5 font-mono text-[13px] whitespace-nowrap" translate="no" tabindex="0" aria-label="Comando para Terminal">{command}</code>
-            <button type="button" class="copy-button btn-glass glass shrink-0 !min-h-9 !px-3.5 !text-[13px]" data-copy={command}>
+            <button type="button" class="copy-button reveal-up after-card btn-glass glass shrink-0 !min-h-9 !px-3.5 !text-[13px]" data-copy={command}>
               <span class="copy-icons" aria-hidden="true">
                 <Icon name="copy" size={15} class="icon-copy" />
                 <Icon name="check" size={15} class="icon-check" />

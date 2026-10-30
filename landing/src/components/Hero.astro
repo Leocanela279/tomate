@@ -20,19 +20,21 @@ import { DMG_URL } from '../lib/site';
       descanso a mitad, programa las siguientes y mira el tiempo desde la barra de menú.
     </p>
 
-    <div style="--i: 3" class="enter mt-9 flex flex-wrap items-center justify-center gap-3">
-      <a href={DMG_URL} class="btn-primary !min-h-12 !px-7 !text-base">
+    <!-- Each button enters on its own: a fading parent would cut the glass off from the page behind it. -->
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+      <a href={DMG_URL} style="--i: 3" class="enter btn-primary !min-h-12 !px-7 !text-base">
         <Icon name="apple" size={18} />
         Descargar para Mac
       </a>
-      <a href="#instalar" class="btn-glass glass !min-h-12 !px-6">Cómo instalarlo</a>
+      <a href="#instalar" style="--i: 3.5" class="enter btn-glass glass !min-h-12 !px-6">Cómo instalarlo</a>
     </div>
     <p style="--i: 4" class="enter mt-4 text-[13px] text-ink-3">macOS 14 Sonoma o posterior · Apple Silicon e Intel</p>
   </div>
 
   <!-- The app itself, playing on its own. -->
   <!-- 880 px: the real window size, so the 2x captures stay pixel-sharp on Retina screens. -->
-  <div style="--i: 5" class="enter enter-plain mx-auto mt-14 max-w-[880px] sm:mt-20">
+  <!-- Arrives right after the hero text; its parts enter on their own (see AppShowcase). -->
+  <div class="mx-auto mt-14 max-w-[880px] sm:mt-20">
     <AppShowcase />
   </div>
 </section>
@@ -47,7 +49,8 @@ import { DMG_URL } from '../lib/site';
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: shine 6s ease-in-out infinite;
+    /* One sweep once the headline has arrived; a loop would keep pulling the eye while people read. */
+    animation: shine 3s ease-in-out 1s both;
   }
 
   @keyframes shine {

@@ -8,9 +8,11 @@ import { SCREENS, SHOT, asset } from '../lib/site';
  */
 ---
 
+<!-- The hero's last step. The glass controls and the window enter separately, so no fading parent
+     cuts the glass off from the page behind it. -->
 <div class="showcase" data-showcase>
   <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-    <div role="tablist" aria-label="Pantallas de Tomate" data-tabbar class="glass relative flex rounded-full p-1">
+    <div role="tablist" aria-label="Pantallas de Tomate" data-tabbar style="--i: 5" class="enter glass relative flex rounded-full p-1">
       <span data-pill class="tab-pill" aria-hidden="true"></span>
       {
         SCREENS.map((screen, index) => (
@@ -35,7 +37,7 @@ import { SCREENS, SHOT, asset } from '../lib/site';
       }
     </div>
 
-    <button type="button" class="play-toggle btn-icon glass shrink-0" data-play hidden aria-label="Pausar la demostración">
+    <button type="button" style="--i: 5" class="enter play-toggle btn-icon glass shrink-0" data-play hidden aria-label="Pausar la demostración">
       <svg class="time-ring" viewBox="0 0 36 36" aria-hidden="true">
         <circle class="ring-track" cx="18" cy="18" r="16.5" />
         <circle class="ring-time" data-ring cx="18" cy="18" r="16.5" pathLength="100" />
@@ -50,7 +52,7 @@ import { SCREENS, SHOT, asset } from '../lib/site';
     </button>
   </div>
 
-  <div class="shots">
+  <div style="--i: 5.5" class="shots enter enter-plain">
     {
       SCREENS.map((screen, index) => (
         <figure role="tabpanel" id={`panel-${screen.id}`} aria-labelledby={`tab-${screen.id}`} hidden={index !== 0} class="shot">

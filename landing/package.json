@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "video": "remotion render TomateIntro video/tomate-intro.mp4"
+    "video": "remotion render TomateIntro video/tomate-intro.mp4 && remotion render TomateAssemble video/tomate-assemble.mp4"
   },
   "dependencies": {
     "@fontsource-variable/cormorant-garamond": "^5.3.0",

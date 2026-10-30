@@ -403,6 +403,11 @@ const reveal = new IntersectionObserver(
 );
 document.querySelectorAll('.reveal-up').forEach((element) => reveal.observe(element));
 
+// ---------- Press feedback on iOS ----------
+
+// iOS Safari only applies :active (the buttons' press state) while a touchstart listener exists.
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 // ---------- Copy buttons ----------
 
 /** Swaps the label with a short unblur, so the new word settles in instead of popping. */
